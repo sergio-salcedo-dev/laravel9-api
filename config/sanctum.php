@@ -15,11 +15,17 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
-        Sanctum::currentApplicationUrlWithPort()
-    ))),
+    'stateful' => explode(
+        ',',
+        env(
+            'SANCTUM_STATEFUL_DOMAINS',
+            sprintf(
+                '%s%s',
+                'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
+                Sanctum::currentApplicationUrlWithPort()
+            )
+        )
+    ),
 
     /*
     |--------------------------------------------------------------------------
@@ -54,7 +60,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | When authenticating your first-party SPA with Sanctum you may need to
-    | customize some of the middleware Sanctum uses while processing the
+    | customize some middleware Sanctum uses while processing the
     | request. You may change the middleware listed below as required.
     |
     */

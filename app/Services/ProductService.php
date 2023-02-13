@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Http\Requests\ProductInsertRequest;
-use App\Http\Requests\ProductUpdateRequest;
+use App\Http\Requests\ProductUpdateOrInsertRequest;
 use App\Http\Requests\StoreSellProductRequest;
 use App\Interfaces\ProductRepositoryInterface;
 use App\Interfaces\ProductStoreRepositoryInterface;
@@ -48,7 +47,7 @@ class ProductService
         ]);
     }
 
-    public function createProduct(ProductInsertRequest $request): JsonResponse
+    public function createProduct(ProductUpdateOrInsertRequest $request): JsonResponse
     {
         $validatedAttributes = $request->validated();
         $product = $this->productRepository->createProduct([
@@ -62,7 +61,7 @@ class ProductService
         ]);
     }
 
-    public function updateProduct(int $productId, ProductUpdateRequest $request): JsonResponse
+    public function updateProduct(int $productId, ProductUpdateOrInsertRequest $request): JsonResponse
     {
         $validatedAttributes = $request->validated();
         $product = $this->productRepository->getProductById($productId);

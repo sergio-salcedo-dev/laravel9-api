@@ -1,0 +1,6 @@
+pm.sendRequest({
+    url: "http://localhost/sanctum/csrf-cookie",
+    method: "GET",
+}, function (error, response, {cookies}) {
+    pm.environment.set('xsrf-cookie', cookies.get('XSRF_TOKEN'))
+});

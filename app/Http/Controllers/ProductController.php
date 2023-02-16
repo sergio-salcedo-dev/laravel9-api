@@ -4,19 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProductUpdateOrInsertRequest;
+use App\Http\Requests\ProductUpdateOCreateRequest;
 use App\Http\Requests\StoreSellProductRequest;
-use App\Interfaces\ResponderInterface;
 use App\Services\ProductService;
-use Illuminate\Http\JsonResponse;
-use Throwable;
+use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
 {
-    public function __construct(
-        private readonly ResponderInterface $apiResponderService,
-        private readonly ProductService $productService
-    ) {
+    public function __construct(private ProductService $productService)
+    {
     }
 
     /**
@@ -24,13 +20,9 @@ class ProductController extends Controller
      *
      * @api GET /products
      */
-    public function index(): JsonResponse
+    public function index(): Response
     {
-        try {
-            return $this->productService->getAllProducts();
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->productService->getAllProducts();
     }
 
     /**
@@ -38,13 +30,9 @@ class ProductController extends Controller
      *
      * @api GET /products/{id}
      */
-    public function show($productId): JsonResponse
+    public function show($productId): Response
     {
-        try {
-            return $this->productService->getProduct((int)$productId);
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->productService->getProduct((int)$productId);
     }
 
     /**
@@ -53,13 +41,9 @@ class ProductController extends Controller
      * @api POST /products
      * Example body request: JSON { "name" : "Test Product" }
      */
-    public function store(ProductUpdateOrInsertRequest $request): JsonResponse
+    public function store(ProductUpdateOCreateRequest $request): Response
     {
-        try {
-            return $this->productService->createProduct($request);
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->productService->createProduct($request);
     }
 
     /**
@@ -68,13 +52,9 @@ class ProductController extends Controller
      * @api POST /products/sell
      * Example body request: JSON { "storeId":1, "productId" :1 }
      */
-    public function sell(StoreSellProductRequest $request): JsonResponse
+    public function sell(StoreSellProductRequest $request): Response
     {
-        try {
-            return $this->productService->sellProduct($request);
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->productService->sellProduct($request);
     }
 
     /**
@@ -82,13 +62,9 @@ class ProductController extends Controller
      *
      * @api PUT /products/{id}
      */
-    public function update($productId, ProductUpdateOrInsertRequest $request): JsonResponse
+    public function update($productId, ProductUpdateOCreateRequest $request): Response
     {
-        try {
-            return $this->productService->updateProduct((int)$productId, $request);
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->productService->updateProduct((int)$productId, $request);
     }
 
     /**
@@ -96,12 +72,8 @@ class ProductController extends Controller
      *
      * @api DELETE /products/{id}
      */
-    public function destroy($productId): JsonResponse
+    public function destroy($productId): Response
     {
-        try {
-            return $this->productService->deleteProduct((int)$productId);
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->productService->deleteProduct((int)$productId);
     }
 }

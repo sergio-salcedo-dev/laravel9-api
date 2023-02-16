@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-class StoreUpdateOrCreateRequest extends BaseFormRequest
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreUpdateOrCreateRequest extends FormRequest
 {
     private const LIMIT_PRODUCTS_INSERTION = 10;
     private const REQUEST_KEY_PRODUCT_IDS = 'productIds';

@@ -43,4 +43,14 @@ class ProductStore extends Pivot
     {
         return $this->stock <= self::STOCK_RUNNING_LOW;
     }
+
+    public function isStockOut(): bool
+    {
+        return $this->stock === 0;
+    }
+
+    public function getStock(): int
+    {
+        return $this->stock;
+    }
 }

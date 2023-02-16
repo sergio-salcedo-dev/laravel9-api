@@ -5,17 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUpdateOrCreateRequest;
-use App\Interfaces\ResponderInterface;
 use App\Services\StoreService;
-use Illuminate\Http\JsonResponse;
-use Throwable;
+use Symfony\Component\HttpFoundation\Response;
 
 class StoreController extends Controller
 {
-    public function __construct(
-        private readonly ResponderInterface $apiResponderService,
-        private readonly StoreService $storeService
-    ) {
+    public function __construct(private StoreService $storeService)
+    {
     }
 
     /**
@@ -23,13 +19,9 @@ class StoreController extends Controller
      *
      * @api GET /stores
      */
-    public function index(): JsonResponse
+    public function index(): Response
     {
-        try {
-            return $this->storeService->getAllStores();
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->storeService->getAllStores();
     }
 
     /**
@@ -37,13 +29,9 @@ class StoreController extends Controller
      *
      * @api GET /stores/{id}
      */
-    public function show($storeId): JsonResponse
+    public function show($storeId): Response
     {
-        try {
-            return $this->storeService->getStore((int)$storeId);
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->storeService->getStore((int)$storeId);
     }
 
     /**
@@ -51,13 +39,9 @@ class StoreController extends Controller
      *
      * @api GET /stores/{id}/products
      */
-    public function storeWithProducts($storeId): JsonResponse
+    public function storeWithProducts($storeId): Response
     {
-        try {
-            return $this->storeService->getStoreWithProductsResponse((int)$storeId);
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->storeService->getStoreWithProducts((int)$storeId);
     }
 
     /**
@@ -65,13 +49,9 @@ class StoreController extends Controller
      *
      * @api GET /stores/products
      */
-    public function storesWithProducts(): JsonResponse
+    public function storesWithProducts(): Response
     {
-        try {
-            return $this->storeService->getStoresWithProducts();
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->storeService->getStoresWithProducts();
     }
 
     /**
@@ -79,13 +59,9 @@ class StoreController extends Controller
      *
      * @api GET /stores/products-count
      */
-    public function storesWithProductsCount(): JsonResponse
+    public function storesWithProductsCount(): Response
     {
-        try {
-            return $this->storeService->getStoresWithProductsCount();
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->storeService->getStoresWithProductsCount();
     }
 
     /**
@@ -99,13 +75,9 @@ class StoreController extends Controller
      *          "products" : [{ "id" : 1, "stock" : 2]
      *      }
      */
-    public function store(StoreUpdateOrCreateRequest $request): JsonResponse
+    public function store(StoreUpdateOrCreateRequest $request): Response
     {
-        try {
-            return $this->storeService->createStore($request);
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->storeService->createStore($request);
     }
 
     /**
@@ -113,13 +85,9 @@ class StoreController extends Controller
      *
      * @api PUT /stores/{id}
      */
-    public function update($storeId, StoreUpdateOrCreateRequest $request): JsonResponse
+    public function update($storeId, StoreUpdateOrCreateRequest $request): Response
     {
-        try {
-            return $this->storeService->updateStore((int)$storeId, $request);
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->storeService->updateStore((int)$storeId, $request);
     }
 
     /**
@@ -127,12 +95,8 @@ class StoreController extends Controller
      *
      * @api DELETE /stores/{id}
      */
-    public function destroy($storeId): JsonResponse
+    public function destroy($storeId): Response
     {
-        try {
-            return $this->storeService->deleteStore((int)$storeId);
-        } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
-        }
+        return $this->storeService->deleteStore((int)$storeId);
     }
 }

@@ -6,19 +6,18 @@ namespace App\Repositories;
 
 use App\Interfaces\ProductRepositoryInterface;
 use App\Models\Product;
-use App\Models\Store;
+use Eloquent;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
 
 class ProductRepository implements ProductRepositoryInterface
 {
-    /** @return Model[]|Product[]|Collection */
-    public function getAllProducts(): Collection|array
+    public function getAllProducts(): Collection
     {
         return Product::all();
     }
 
-    public function getProductById(int $productId): Model|Store|null
+    public function getProductById(int $productId): Eloquent|Builder|Product|null
     {
         return Product::where('id', $productId)->first();
     }
@@ -28,7 +27,7 @@ class ProductRepository implements ProductRepositoryInterface
         return Product::destroy($productId);
     }
 
-    public function createProduct(array $attributes): Product
+    public function createProduct(array $attributes): Eloquent|Product
     {
         return Product::create($attributes);
     }

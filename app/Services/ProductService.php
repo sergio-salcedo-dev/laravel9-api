@@ -4,36 +4,34 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Http\Requests\ProductUpdateOrInsertRequest;
+use App\Http\Requests\ProductUpdateOCreateRequest;
 use App\Http\Requests\StoreSellProductRequest;
+use App\Interfaces\PivotProductStoreRepositoryInterface;
 use App\Interfaces\ProductRepositoryInterface;
-use App\Interfaces\ProductStoreRepositoryInterface;
 use App\Interfaces\ResponderInterface;
 use App\Interfaces\StoreRepositoryInterface;
 use App\Models\ProductStore;
-use Illuminate\Http\JsonResponse;
-use Symfony\Component\HttpFoundation\Response as HttpResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class ProductService
 {
     public function __construct(
         private StoreRepositoryInterface $storeRepository,
         private ProductRepositoryInterface $productRepository,
-        private ProductStoreRepositoryInterface $productStoreRepository,
-        private StoreService $storeService,
-        private ResponderInterface $apiResponderService
+        private PivotProductStoreRepositoryInterface $pivotProductStoreRepository,
+        private ResponderInterface $jsonResponderService
     ) {
     }
 
-    public function getAllProducts(): JsonResponse
+    public function getAllProducts(): Response
     {
-        return $this->apiResponderService->success([
+        return $this->jsonResponderService->response([
             'success' => 1,
             'products' => $this->productRepository->getAllProducts(),
         ]);
     }
 
-    public function getProduct(int $productId): JsonResponse
+    public function getProduct(int $productId): Response
     {
         $product = $this->productRepository->getProductById($productId);
 
@@ -41,27 +39,27 @@ class ProductService
             return $this->returnProductNotFound();
         }
 
-        return $this->apiResponderService->success([
+        return $this->jsonResponderService->response([
             'success' => 1,
             'product' => $product,
         ]);
     }
 
-    public function createProduct(ProductUpdateOrInsertRequest $request): JsonResponse
+    public function createProduct(ProductUpdateOCreateRequest $request): Response
     {
         $validatedAttributes = $request->validated();
         $product = $this->productRepository->createProduct([
-            'name' => $validatedAttributes['name']
+            'name' => $validatedAttributes['name'],
         ]);
 
-        return $this->apiResponderService->created([
+        return $this->jsonResponderService->response([
             'success' => 1,
             'message' => 'Product created successfully',
             'product' => $product,
-        ]);
+        ], Response::HTTP_CREATED);
     }
 
-    public function updateProduct(int $productId, ProductUpdateOrInsertRequest $request): JsonResponse
+    public function updateProduct(int $productId, ProductUpdateOCreateRequest $request): Response
     {
         $validatedAttributes = $request->validated();
         $product = $this->productRepository->getProductById($productId);
@@ -73,22 +71,22 @@ class ProductService
         $isUpdated = $this->productRepository->updateProduct($productId, ['name' => $validatedAttributes['name'],]);
 
         if (!$isUpdated) {
-            return $this->apiResponderService->success([
+            return $this->jsonResponderService->response([
                 'success' => 0,
                 'message' => 'An error occurred while updating the product',
-            ], HttpResponse::HTTP_ACCEPTED);
+            ], Response::HTTP_ACCEPTED);
         }
 
         $product->refresh();
 
-        return $this->apiResponderService->success([
+        return $this->jsonResponderService->response([
             'success' => 1,
             'message' => 'Product updated successfully',
             'product' => $product,
         ]);
     }
 
-    public function deleteProduct(int $productId): JsonResponse
+    public function deleteProduct(int $productId): Response
     {
         $product = $this->productRepository->getProductById($productId);
 
@@ -99,20 +97,20 @@ class ProductService
         $isDeleted = (bool)$this->productRepository->deleteProduct($productId);
 
         if (!$isDeleted) {
-            return $this->apiResponderService->error([
+            return $this->jsonResponderService->response([
                 'success' => 0,
                 'message' => 'An error occurred while deleting the product',
-            ]);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        return $this->apiResponderService->success([
+        return $this->jsonResponderService->response([
             'success' => 1,
             'message' => 'Product deleted successfully',
             'product' => $product,
         ]);
     }
 
-    public function sellProduct(StoreSellProductRequest $request): JsonResponse
+    public function sellProduct(StoreSellProductRequest $request): Response
     {
         $validatedAttributes = array_map('intval', $request->validated());
         $storeId = $validatedAttributes['storeId'];
@@ -121,7 +119,10 @@ class ProductService
         $store = $this->storeRepository->getStoreById($storeId);
 
         if (!$store) {
-            return $this->storeService->returnStoreNotFound();
+            return $this->jsonResponderService->response([
+                'success' => 0,
+                'message' => "Store not found",
+            ], Response::HTTP_NOT_FOUND);
         }
 
         $product = $this->productRepository->getProductById($productId);
@@ -130,40 +131,39 @@ class ProductService
             return $this->returnProductNotFound();
         }
 
-        $productPivot = $this->productStoreRepository->getPivot($store->id, $product->id);
-//        $productPivot = $store->products->where('id', $productId)->first()->pivot;
+        $pivotProductStore = $this->pivotProductStoreRepository->getPivotByIds($storeId, $productId);
 
-        if (!$productPivot || !$productPivot->hasStock()) {
+        if (!$pivotProductStore || !$pivotProductStore->hasStock()) {
             $success = 0;
             $message = 'The store does not have any stock of this product.';
         } else {
             $success = 1;
-            $productPivot->decrement('stock');
-            $message = $this->getProductSoldMessage($productPivot);
+            $this->pivotProductStoreRepository->decrementStock($pivotProductStore);
+            $message = $this->getProductSoldMessage($pivotProductStore);
         }
 
-        return $this->apiResponderService->success([
+        return $this->jsonResponderService->response([
             'success' => $success,
-            'message' => $message
-        ]);
-    }
-
-    public function returnProductNotFound($message = "Product not found"): JsonResponse
-    {
-        return $this->apiResponderService->notFound([
-            'success' => 0,
             'message' => $message,
         ]);
     }
 
-    private function getProductSoldMessage(ProductStore $productPivot): string
+    private function returnProductNotFound($message = "Product not found"): Response
+    {
+        return $this->jsonResponderService->response([
+            'success' => 0,
+            'message' => $message,
+        ], Response::HTTP_NOT_FOUND);
+    }
+
+    private function getProductSoldMessage(ProductStore $pivot): string
     {
         $successMessage = 'Product sold successfully.';
 
-        if ($productPivot->stock === 0) {
+        if ($pivot->isStockOut()) {
             $message = "$successMessage The store run out of this product";
-        } elseif ($productPivot->isStockRunningLow()) {
-            $message = "$successMessage The store is running low on stock of this product, remaining: $productPivot->stock units.";
+        } elseif ($pivot->isStockRunningLow()) {
+            $message = "$successMessage The store is running low on stock of this product, remaining: {$pivot->getStock()} units";
         } else {
             $message = $successMessage;
         }

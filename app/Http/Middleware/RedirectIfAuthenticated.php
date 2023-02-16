@@ -26,6 +26,7 @@ class RedirectIfAuthenticated
                 if ($request->expectsJson()) {
                     return response()->json([], 200);
                 }
+
                 return redirect(RouteServiceProvider::HOME);
             }
         }

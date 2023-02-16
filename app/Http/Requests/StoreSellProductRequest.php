@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-class StoreSellProductRequest extends BaseFormRequest
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreSellProductRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -5,20 +5,22 @@ declare(strict_types=1);
 namespace App\Interfaces;
 
 use App\Models\Product;
-use App\Models\Store;
+use Eloquent;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
 
 interface ProductRepositoryInterface
 {
-    /** @return Model[]|Product[]|Collection */
-    public function getAllProducts(): Collection|array;
 
-    public function getProductById(int $productId): Model|Store|null;
+    public function getAllProducts(): Collection;
+
+    public function getProductById(int $productId): Eloquent|Builder|Product|null;
 
     public function deleteProduct(int $productId): int;
 
-    public function createProduct(array $attributes): Product;
+    public function createProduct(array $attributes): Eloquent|Product;
 
     public function updateProduct(int $productId, array $attributes): bool;
+
+    public function saveProduct(Product $product): bool;
 }

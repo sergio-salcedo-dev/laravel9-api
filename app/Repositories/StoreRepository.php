@@ -6,34 +6,36 @@ namespace App\Repositories;
 
 use App\Interfaces\StoreRepositoryInterface;
 use App\Models\Store;
+use Eloquent;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 class StoreRepository implements StoreRepositoryInterface
 {
-    /** @return Model[]|Store[]|Collection */
-    public function getAllStores(): Collection|array
+    public function getAllStores(): Collection
     {
         return Store::all();
     }
 
-    public function getStoreById(int $storeId): Model|Store|null
+    public function getStoreById(int $storeId): Eloquent|Builder|Store|null
     {
         return Store::where('id', $storeId)->first();
     }
 
-    public function getStoreWithProducts(int $storeId): Collection|Model|Store|null
+    public function getStoreWithProducts(int $storeId): Eloquent|Builder|Store|null
     {
-        return Store::with('products')->where('id', $storeId)->get();
+        return Store::with('products')->where('id', $storeId)->first();
     }
 
-    /** @return Model[]|Store[]|Collection */
+    /** @return Store[]|Collection */
     public function getStoresWithProductsCount(): Collection|array
     {
         return Store::withCount('products')->get();
     }
 
-    public function getStoresWithProducts(): array
+    /** @return Store[]|Collection */
+    public function getStoresWithProducts(): Collection|array
     {
         return Store::with('products')->get();
     }
@@ -43,12 +45,12 @@ class StoreRepository implements StoreRepositoryInterface
         return Store::destroy($storeId);
     }
 
-    public function createStore(array $attributes): Model|Store
+    public function createStore(array $attributes): Eloquent|Store
     {
         return Store::create($attributes);
     }
 
-    public function updateStore(int $storeId, array $attributes): bool
+    public function updateStore(int $storeId, array $attributes): bool|int
     {
         return $this->getStoreById($storeId)->update($attributes);
     }

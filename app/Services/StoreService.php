@@ -9,9 +9,7 @@ use App\Interfaces\ProductRepositoryInterface;
 use App\Interfaces\ResponderInterface;
 use App\Interfaces\StoreRepositoryInterface;
 use App\Models\Store;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\JsonResponse;
-use Symfony\Component\HttpFoundation\Response as HttpResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class StoreService
@@ -19,75 +17,65 @@ class StoreService
     public function __construct(
         private StoreRepositoryInterface $storeRepository,
         private ProductRepositoryInterface $productRepository,
-        private ResponderInterface $apiResponderService
+        private ResponderInterface $jsonResponderService
     ) {
     }
 
-    public function getAllStores(): JsonResponse
+    public function getAllStores(): Response
     {
-        return $this->apiResponderService->success([
+        return $this->jsonResponderService->response([
             'success' => 1,
             'stores' => $this->storeRepository->getAllStores(),
         ]);
     }
 
-    public function getStoresWithProducts(): JsonResponse
+    public function getStoresWithProducts(): Response
     {
         $stores = $this->storeRepository->getStoresWithProducts();
 
-        return $this->apiResponderService->success([
+        return $this->jsonResponderService->response([
             'success' => 1,
             'stores' => $stores,
         ]);
     }
 
-    public function getStoreById(int $storeId): ?Store
+    public function getStoreWithProducts(int $storeId): Response
     {
-        return $this->storeRepository->getStoreById($storeId);
-    }
-
-    public function getStoreWithProducts(int $storeId): Collection|array|null
-    {
-        return $this->storeRepository->getStoreWithProducts($storeId);
-    }
-
-    public function getStoreWithProductsResponse(int $storeId): JsonResponse
-    {
-        $store = $this->getStoreWithProducts($storeId);
+        $store = $this->storeRepository->getStoreWithProducts($storeId);
 
         if (!$store) {
             return $this->returnStoreNotFound();
         }
 
-        return $this->apiResponderService->success([
+        return $this->jsonResponderService->response([
             'success' => 1,
             'store' => $store,
         ]);
     }
 
-    public function getStoresWithProductsCount(): JsonResponse
+    public function getStoresWithProductsCount(): Response
     {
-        return $this->apiResponderService->success([
+        return $this->jsonResponderService->response([
             'success' => 1,
             'stores' => $this->storeRepository->getStoresWithProductsCount(),
         ]);
     }
 
-    public function getStore(int $storeId): JsonResponse
+    public function getStore(int $storeId): Response
     {
-        $store = $this->getStoreById($storeId);
+        $store = $this->storeRepository->getStoreById($storeId);
 
         if (!$store) {
             return $this->returnStoreNotFound();
         }
 
-        return $this->apiResponderService->success([
+        return $this->jsonResponderService->response([
             'success' => 1,
             'store' => $store,
         ]);
     }
 
-    public function createStore(StoreUpdateOrCreateRequest $request): JsonResponse
+    public function createStore(StoreUpdateOrCreateRequest $request): Response
     {
         $validatedAttributes = $request->validated();
         $name = $validatedAttributes['name'];
@@ -97,35 +85,38 @@ class StoreService
         try {
             $store = $this->storeRepository->createStore(['name' => $name]);
         } catch (Throwable $e) {
-            return $this->apiResponderService->sendError500($e);
+            $errorInfo = ['success' => 0, 'message' => 'The store was not created'];
+
+            return $this->jsonResponderService->sendExceptionError($e, $errorInfo);
         }
 
         try {
             $productsToAttach = $this->getProductsToAttach($productIds, $productsData);
             $this->attachProductsToStore($store, $productsToAttach);
         } catch (Throwable $e) {
-            return $this->apiResponderService->error([
+            $errorInfo = [
                 'success' => 1,
-                'message' => 'Upss... The store was created successfully but something went wrong when attaching the products',
-                'errors' => $e->getMessage(),
-            ]);
+                'message' => 'Warning: The store was created successfully but something went wrong when attaching the products',
+            ];
+
+            return $this->jsonResponderService->sendExceptionError($e, $errorInfo);
         }
 
-        return $this->apiResponderService->created([
+        return $this->jsonResponderService->response([
             'success' => 1,
             'message' => 'Store created successfully',
-            'store' => $this->getStoreWithProducts($store->id),
-        ]);
+            'store' => $this->storeRepository->getStoreWithProducts($store->id),
+        ], Response::HTTP_CREATED);
     }
 
-    public function updateStore(int $storeId, StoreUpdateOrCreateRequest $request): JsonResponse
+    public function updateStore(int $storeId, StoreUpdateOrCreateRequest $request): Response
     {
         $validatedAttributes = $request->validated();
         $name = $validatedAttributes['name'];
         $productIds = $validatedAttributes['productIds'] ?? [];
         $productsData = $validatedAttributes['products'] ?? [];
 
-        $store = $this->getStoreById($storeId);
+        $store = $this->storeRepository->getStoreById($storeId);
 
         if (!$store) {
             return $this->returnStoreNotFound();
@@ -134,10 +125,10 @@ class StoreService
         $isUpdated = $this->storeRepository->updateStore($storeId, ['name' => $name]);
 
         if (!$isUpdated) {
-            return $this->apiResponderService->success([
+            return $this->jsonResponderService->response([
                 'success' => 0,
                 'message' => 'An error occurred while updating the store',
-            ], HttpResponse::HTTP_ACCEPTED);
+            ], Response::HTTP_ACCEPTED);
         }
 
         $store->refresh();
@@ -145,25 +136,26 @@ class StoreService
         try {
             $productsToAttach = $this->getProductsToAttach($productIds, $productsData);
             $productsToSync = $this->getProductsToSync($productsToAttach);
-
             $this->storeRepository->syncProducts($store, $productsToSync);
         } catch (Throwable $e) {
-            return $this->apiResponderService->error([
+            $errorInfo = [
                 'success' => 1,
                 'message' => 'Upss... The store was updated successfully but something went wrong when syncing the products',
-            ]);
+            ];
+
+            return $this->jsonResponderService->sendExceptionError($e, $errorInfo);
         }
 
-        return $this->apiResponderService->success([
+        return $this->jsonResponderService->response([
             'success' => 1,
             'message' => 'Store updated successfully',
-            'store' => $this->getStoreWithProducts($store->id),
+            'store' => $this->storeRepository->getStoreWithProducts($storeId),
         ]);
     }
 
-    public function deleteStore(int $storeId): JsonResponse
+    public function deleteStore(int $storeId): Response
     {
-        $store = $this->getStoreById($storeId);
+        $store = $this->storeRepository->getStoreById($storeId);
 
         if (!$store) {
             return $this->returnStoreNotFound();
@@ -174,25 +166,25 @@ class StoreService
         $isDeleted = (bool)$this->storeRepository->deleteStore($storeId);
 
         if (!$isDeleted) {
-            return $this->apiResponderService->error([
+            return $this->jsonResponderService->response([
                 'success' => 0,
                 'message' => 'An error occurred while deleting the store',
-            ]);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        return $this->apiResponderService->success([
+        return $this->jsonResponderService->response([
             'success' => 1,
             'message' => 'Store deleted successfully',
             'store' => $store,
         ]);
     }
 
-    public function returnStoreNotFound($message = "Store not found"): JsonResponse
+    private function returnStoreNotFound($message = "Store not found"): Response
     {
-        return $this->apiResponderService->notFound([
+        return $this->jsonResponderService->response([
             'success' => 0,
             'message' => $message,
-        ]);
+        ], Response::HTTP_NOT_FOUND);
     }
 
     private function attachProductsToStore(Store $store, array $products = []): void
@@ -208,9 +200,15 @@ class StoreService
 
     private function detachProductsFromStore(Store $store): void
     {
-        $productIdsToDetach = $store->products()->pluck('products.id')->toArray();
+//        /** @var int[] $productIdsToDetach*/
+//        $productIdsToDetach = $store->products()->pluck('products.id')->toArray();
+//        $this->storeRepository->detachProductsFromStore($store, $productIdsToDetach);
 
-        $this->storeRepository->detachProductsFromStore($store, $productIdsToDetach);
+        $store->load('products');
+        $productIdsToDetach = $store->products->pluck('id');
+        $productIdsToDetachArray = $productIdsToDetach->toArray();
+
+        $this->storeRepository->detachProductsFromStore($store, $productIdsToDetachArray);
     }
 
     private function mergeProductsDataWithSameProductId(array $productsData): array
@@ -218,6 +216,7 @@ class StoreService
         $mergedProductsData = [];
 
         foreach ($productsData as $productData) {
+            // todo check isset($productData["id"])
             $productId = $productData["id"];
 
             if (isset($mergedProductsData[$productId])) {
@@ -228,17 +227,6 @@ class StoreService
         }
 
         return array_values($mergedProductsData);
-    }
-
-    private function validateProductId(int $productId): int
-    {
-        $product = $this->productRepository->getProductById($productId);
-
-        if (!$product) {
-            return 0;
-        }
-
-        return $productId;
     }
 
     /**
@@ -269,7 +257,8 @@ class StoreService
         $validatedProductsData = [];
 
         foreach ($productsData as $productData) {
-            $productId = $productData["id"];
+            $productId = $productData["id"] ?? 0;
+
             $validatedProductId = $this->validateProductId($productId);
 
             if ($validatedProductId) {
@@ -301,7 +290,7 @@ class StoreService
         return $this->mergeProductsDataWithSameProductId($mergedProductsData);
     }
 
-    private function getProductsToSync(array $products): array
+    private function getProductsToSync(array $products = []): array
     {
         return array_reduce(
             $products,
@@ -309,9 +298,21 @@ class StoreService
                 if (isset($product['id']) && isset($product['stock'])) {
                     $carry[0][$product['id']] = ["stock" => $product['stock']];
                 }
+
                 return $carry;
             },
             [[]]
         );
+    }
+
+    private function validateProductId(int $productId): int
+    {
+        $product = $this->productRepository->getProductById($productId);
+
+        if (!$product) {
+            return 0;
+        }
+
+        return $productId;
     }
 }

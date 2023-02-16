@@ -5,27 +5,28 @@ declare(strict_types=1);
 namespace App\Interfaces;
 
 use App\Models\Store;
+use Eloquent;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 interface StoreRepositoryInterface
 {
-    /** @return Model[]|Store[]|Collection */
-    public function getAllStores(): Collection|array;
+    public function getAllStores(): Collection;
 
-    public function getStoreById(int $storeId): Model|Store|null;
+    public function getStoreById(int $storeId): Eloquent|Builder|Store|null;
 
-    public function getStoreWithProducts(int $storeId): Collection|Model|Store|null;
+    public function getStoreWithProducts(int $storeId): Eloquent|Builder|Store|null;
 
-    /** @return Model[]|Store[]|Collection */
     public function getStoresWithProducts(): Collection|array;
 
-    /** @return Model[]|Store[]|Collection */
     public function getStoresWithProductsCount(): Collection|array;
 
-    public function createStore(array $attributes): Model|Store;
+    public function createStore(array $attributes): Eloquent|Store;
 
-    public function updateStore(int $storeId, array $attributes): bool;
+    public function updateStore(int $storeId, array $attributes): bool|int;
+
+    public function saveStore(Store $store): bool;
 
     public function deleteStore(int $storeId): int;
 

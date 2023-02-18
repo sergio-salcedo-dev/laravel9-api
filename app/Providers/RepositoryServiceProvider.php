@@ -8,7 +8,7 @@ use App\Interfaces\PivotProductStoreRepositoryInterface;
 use App\Interfaces\ProductRepositoryInterface;
 use App\Interfaces\ResponderInterface;
 use App\Interfaces\StoreRepositoryInterface;
-use App\Repositories\PivotPivotProductStoreRepository;
+use App\Repositories\PivotProductStoreRepository;
 use App\Repositories\ProductRepository;
 use App\Repositories\StoreRepository;
 use App\Services\JsonResponderService;
@@ -23,7 +23,7 @@ class RepositoryServiceProvider extends ServiceProvider
     {
         $this->app->bind(StoreRepositoryInterface::class, StoreRepository::class);
         $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
-        $this->app->bind(PivotProductStoreRepositoryInterface::class, PivotPivotProductStoreRepository::class);
+        $this->app->bind(PivotProductStoreRepositoryInterface::class, PivotProductStoreRepository::class);
         $this->app->bind(ResponderInterface::class, JsonResponderService::class);
     }
 

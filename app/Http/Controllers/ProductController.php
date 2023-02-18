@@ -32,7 +32,7 @@ class ProductController extends Controller
      */
     public function show($productId): Response
     {
-        return $this->productService->getProduct((int)$productId);
+        return $this->productService->getProductById((int)$productId);
     }
 
     /**

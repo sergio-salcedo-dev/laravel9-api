@@ -40,7 +40,7 @@ class ProductControllerTest extends TestCase
 
     public function testShow_returnsExpectedJsonAndStatusCode(): void
     {
-        $this->productService->expects('getProduct')->withArgs([1])->andReturn(new JsonResponse([]));
+        $this->productService->expects('getProductById')->withArgs([1])->andReturn(new JsonResponse([]));
 
         $response = $this->controller->show(1);
 

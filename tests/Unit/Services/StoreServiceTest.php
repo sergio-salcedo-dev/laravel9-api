@@ -51,7 +51,7 @@ class StoreServiceTest extends TestCase
             ],
         ];
 
-        $this->storeRepository->expects('getAllStores')->andReturn(new Collection($data['stores']));
+        $this->storeRepository->expects('all')->andReturn(new Collection($data['stores']));
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data));
 
         $response = $this->service->getAllStores();
@@ -82,7 +82,7 @@ class StoreServiceTest extends TestCase
                 ],
             ],
         ];
-        $this->storeRepository->expects('getStoresWithProducts')->andReturn($data);
+        $this->storeRepository->expects('allWithProducts')->andReturn($data);
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->getStoresWithProducts();
@@ -99,7 +99,7 @@ class StoreServiceTest extends TestCase
                 ['id' => 2, 'name' => 'Store 2', 'products_count' => 1],
             ],
         ];
-        $this->storeRepository->expects('getStoresWithProductsCount')->andReturn($data);
+        $this->storeRepository->expects('allWithProductsCount')->andReturn($data);
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->getStoresWithProductsCount();
@@ -114,7 +114,7 @@ class StoreServiceTest extends TestCase
             'message' => 'Store not found',
         ];
 
-        $this->storeRepository->expects('getStoreWithProducts')->andReturnNull();
+        $this->storeRepository->expects('findWithProducts')->andReturnNull();
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 404));
 
         $response = $this->service->getStoreWithProducts(1);
@@ -147,7 +147,7 @@ class StoreServiceTest extends TestCase
         ];
         $store = Mockery::mock(Store::class);
 
-        $this->storeRepository->expects('getStoreWithProducts')->andReturn($store);
+        $this->storeRepository->expects('findWithProducts')->andReturn($store);
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->getStoreWithProducts(1);
@@ -162,7 +162,7 @@ class StoreServiceTest extends TestCase
             'message' => 'Store not found',
         ];
 
-        $this->storeRepository->expects('getStoreById')->andReturnNull();
+        $this->storeRepository->expects('find')->andReturnNull();
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 404));
 
         $response = $this->service->getStore(1);
@@ -178,7 +178,7 @@ class StoreServiceTest extends TestCase
         ];
         $store = Mockery::mock(Store::class);
 
-        $this->storeRepository->expects('getStoreById')->andReturn($store);
+        $this->storeRepository->expects('find')->andReturn($store);
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->getStore(1);
@@ -209,7 +209,7 @@ class StoreServiceTest extends TestCase
                 ],
             ]);
 
-        $this->storeRepository->expects('createStore')->andThrow($exception);
+        $this->storeRepository->expects('create')->andThrow($exception);
         $this->jsonResponderService->expects('sendExceptionError')->andReturn(new JsonResponse($data, 500));
 
         $response = $this->service->createStore($request);
@@ -244,13 +244,13 @@ class StoreServiceTest extends TestCase
                 ],
             ]);
 
-        $this->storeRepository->expects('createStore')->andReturn($store);
+        $this->storeRepository->expects('create')->andReturn($store);
         $this->productRepository
-            ->shouldReceive('getProductById')
+            ->shouldReceive('find')
             ->withAnyArgs()
             ->zeroOrMoreTimes()
             ->andReturn($product);
-        $this->storeRepository->expects('attachProductToStore')->andThrow($exception);
+        $this->storeRepository->expects('attachProduct')->andThrow($exception);
         $this->jsonResponderService->expects('sendExceptionError')->andReturn(new JsonResponse($data, 500));
 
         $response = $this->service->createStore($request);
@@ -290,21 +290,20 @@ class StoreServiceTest extends TestCase
                 ],
             ]);
 
-        $this->storeRepository->expects('createStore')->andReturn($store);
+        $this->storeRepository->expects('create')->andReturn($store);
         $this->productRepository
-            ->shouldReceive('getProductById')
+            ->shouldReceive('find')
             ->withAnyArgs()
             ->zeroOrMoreTimes()
             ->andReturn($product);
-        $this->storeRepository->shouldReceive('attachProductToStore')->zeroOrMoreTimes();
-        $this->storeRepository->shouldReceive('getStoreWithProducts')->with($store->id)->andReturn($store);
+        $this->storeRepository->shouldReceive('attachProduct')->zeroOrMoreTimes();
+        $this->storeRepository->shouldReceive('findWithProducts')->with($store->id)->andReturn($store);
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 500));
 
         $response = $this->service->createStore($request);
 
         $this->assertJsonResponseAndStatusCode(json_encode($data), 500, $response);
     }
-
 
     public function testUpdateStore_withStoreNotFound_returnsJsonResponseWithStatusCode404(): void
     {
@@ -324,7 +323,7 @@ class StoreServiceTest extends TestCase
                     ['id' => 4, 'stock' => 4],
                 ],
             ]);
-        $this->storeRepository->expects('getStoreById')->andReturnNull();
+        $this->storeRepository->expects('find')->andReturnNull();
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 404));
 
         $response = $this->service->updateStore(1, $request);
@@ -352,8 +351,8 @@ class StoreServiceTest extends TestCase
             ]);
         $store = Mockery::mock(Store::class);
 
-        $this->storeRepository->expects('getStoreById')->andReturn($store);
-        $this->storeRepository->expects('updateStore')->andReturnFalse();
+        $this->storeRepository->expects('find')->andReturn($store);
+        $this->storeRepository->expects('update')->andReturnFalse();
 
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, Response::HTTP_ACCEPTED));
 
@@ -389,13 +388,13 @@ class StoreServiceTest extends TestCase
         $product = Mockery::mock(Product::class);
         $exception = new Exception('Exception message');
 
-        $this->storeRepository->shouldReceive('getStoreById')->zeroOrMoreTimes()->andReturn($store);
-        $this->storeRepository->expects('updateStore')->andReturn(1);
+        $this->storeRepository->shouldReceive('find')->zeroOrMoreTimes()->andReturn($store);
+        $this->storeRepository->expects('update')->andReturn(1);
 
         $store->shouldReceive('refresh');
 
         $this->productRepository
-            ->expects('getProductById')
+            ->expects('find')
             ->withAnyArgs()
             ->zeroOrMoreTimes()
             ->andReturn($product);
@@ -429,18 +428,18 @@ class StoreServiceTest extends TestCase
         $store = Mockery::mock(Store::class);
         $product = Mockery::mock(Product::class);
 
-        $this->storeRepository->shouldReceive('getStoreById')->zeroOrMoreTimes()->andReturn($store);
-        $this->storeRepository->expects('updateStore')->andReturn(1);
+        $this->storeRepository->shouldReceive('find')->zeroOrMoreTimes()->andReturn($store);
+        $this->storeRepository->expects('update')->andReturn(1);
 
         $store->shouldReceive('refresh');
 
         $this->productRepository
-            ->expects('getProductById')
+            ->expects('find')
             ->withAnyArgs()
             ->zeroOrMoreTimes()
             ->andReturn($product);
-        $this->storeRepository->expects('syncProducts');
-        $this->storeRepository->expects('getStoreWithProducts')->andReturn($store);
+        $this->storeRepository->expects('syncProduct')->zeroOrMoreTimes();
+        $this->storeRepository->expects('findWithProducts')->andReturn($store);
 
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 200));
 
@@ -456,7 +455,7 @@ class StoreServiceTest extends TestCase
             'message' => "Store not found",
         ];
 
-        $this->storeRepository->expects('getStoreById')->andReturnNull();
+        $this->storeRepository->expects('find')->andReturnNull();
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 404));
 
         $response = $this->service->deleteStore(1);
@@ -475,13 +474,13 @@ class StoreServiceTest extends TestCase
         $products = new Collection([$product]);
         $store = Mockery::mock(Store::class);
 
-        $this->storeRepository->expects('getStoreById')->andReturn($store);
+        $this->storeRepository->expects('find')->andReturn($store);
 
         $store->shouldReceive('getAttribute')->with('products')->andReturn($products);
         $store->shouldReceive('load')->with('products')->andReturn([$product]);
 
-        $this->storeRepository->expects('detachProductsFromStore');
-        $this->storeRepository->expects('deleteStore')->andReturn(0);
+        $this->storeRepository->expects('detachProducts');
+        $this->storeRepository->expects('delete')->andReturn(0);
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 500));
 
         $response = $this->service->deleteStore(1);
@@ -500,13 +499,13 @@ class StoreServiceTest extends TestCase
         $products = new Collection([$product]);
         $store = Mockery::mock(Store::class);
 
-        $this->storeRepository->expects('getStoreById')->andReturn($store);
+        $this->storeRepository->expects('find')->andReturn($store);
 
         $store->shouldReceive('getAttribute')->with('products')->andReturn($products);
         $store->shouldReceive('load')->with('products')->andReturn([$product]);
 
-        $this->storeRepository->expects('detachProductsFromStore');
-        $this->storeRepository->expects('deleteStore')->andReturn(1);
+        $this->storeRepository->expects('detachProducts');
+        $this->storeRepository->expects('delete')->andReturn(1);
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->deleteStore(1);

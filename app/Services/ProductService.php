@@ -27,13 +27,13 @@ class ProductService
     {
         return $this->jsonResponderService->response([
             'success' => 1,
-            'products' => $this->productRepository->getAllProducts(),
+            'products' => $this->productRepository->all(),
         ]);
     }
 
-    public function getProduct(int $productId): Response
+    public function getProductById(int $productId): Response
     {
-        $product = $this->productRepository->getProductById($productId);
+        $product = $this->productRepository->find($productId);
 
         if (!$product) {
             return $this->returnProductNotFound();
@@ -62,7 +62,7 @@ class ProductService
     public function updateProduct(int $productId, ProductUpdateOCreateRequest $request): Response
     {
         $validatedAttributes = $request->validated();
-        $product = $this->productRepository->getProductById($productId);
+        $product = $this->productRepository->find($productId);
 
         if (!$product) {
             return $this->returnProductNotFound();
@@ -88,7 +88,7 @@ class ProductService
 
     public function deleteProduct(int $productId): Response
     {
-        $product = $this->productRepository->getProductById($productId);
+        $product = $this->productRepository->find($productId);
 
         if (!$product) {
             return $this->returnProductNotFound();
@@ -116,7 +116,7 @@ class ProductService
         $storeId = $validatedAttributes['storeId'];
         $productId = $validatedAttributes['productId'];
 
-        $store = $this->storeRepository->getStoreById($storeId);
+        $store = $this->storeRepository->find($storeId);
 
         if (!$store) {
             return $this->jsonResponderService->response([
@@ -125,7 +125,7 @@ class ProductService
             ], Response::HTTP_NOT_FOUND);
         }
 
-        $product = $this->productRepository->getProductById($productId);
+        $product = $this->productRepository->find($productId);
 
         if (!$product) {
             return $this->returnProductNotFound();

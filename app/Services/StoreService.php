@@ -25,13 +25,13 @@ class StoreService
     {
         return $this->jsonResponderService->response([
             'success' => 1,
-            'stores' => $this->storeRepository->getAllStores(),
+            'stores' => $this->storeRepository->all(),
         ]);
     }
 
     public function getStoresWithProducts(): Response
     {
-        $stores = $this->storeRepository->getStoresWithProducts();
+        $stores = $this->storeRepository->allWithProducts();
 
         return $this->jsonResponderService->response([
             'success' => 1,
@@ -41,7 +41,7 @@ class StoreService
 
     public function getStoreWithProducts(int $storeId): Response
     {
-        $store = $this->storeRepository->getStoreWithProducts($storeId);
+        $store = $this->storeRepository->findWithProducts($storeId);
 
         if (!$store) {
             return $this->returnStoreNotFound();
@@ -57,13 +57,13 @@ class StoreService
     {
         return $this->jsonResponderService->response([
             'success' => 1,
-            'stores' => $this->storeRepository->getStoresWithProductsCount(),
+            'stores' => $this->storeRepository->allWithProductsCount(),
         ]);
     }
 
     public function getStore(int $storeId): Response
     {
-        $store = $this->storeRepository->getStoreById($storeId);
+        $store = $this->storeRepository->find($storeId);
 
         if (!$store) {
             return $this->returnStoreNotFound();
@@ -83,7 +83,7 @@ class StoreService
         $productsData = $validatedAttributes['products'] ?? [];
 
         try {
-            $store = $this->storeRepository->createStore(['name' => $name]);
+            $store = $this->storeRepository->create(['name' => $name]);
         } catch (Throwable $e) {
             $errorInfo = ['success' => 0, 'message' => 'The store was not created'];
 
@@ -105,7 +105,7 @@ class StoreService
         return $this->jsonResponderService->response([
             'success' => 1,
             'message' => 'Store created successfully',
-            'store' => $this->storeRepository->getStoreWithProducts($store->id),
+            'store' => $this->storeRepository->findWithProducts($store->id),
         ], Response::HTTP_CREATED);
     }
 
@@ -116,13 +116,13 @@ class StoreService
         $productIds = $validatedAttributes['productIds'] ?? [];
         $productsData = $validatedAttributes['products'] ?? [];
 
-        $store = $this->storeRepository->getStoreById($storeId);
+        $store = $this->storeRepository->find($storeId);
 
         if (!$store) {
             return $this->returnStoreNotFound();
         }
 
-        $isUpdated = $this->storeRepository->updateStore($storeId, ['name' => $name]);
+        $isUpdated = $this->storeRepository->update($storeId, ['name' => $name]);
 
         if (!$isUpdated) {
             return $this->jsonResponderService->response([
@@ -136,7 +136,8 @@ class StoreService
         try {
             $productsToAttach = $this->getProductsToAttach($productIds, $productsData);
             $productsToSync = $this->getProductsToSync($productsToAttach);
-            $this->storeRepository->syncProducts($store, $productsToSync);
+
+            $this->syncProducts($store, $productsToSync);
         } catch (Throwable $e) {
             $errorInfo = [
                 'success' => 1,
@@ -149,13 +150,13 @@ class StoreService
         return $this->jsonResponderService->response([
             'success' => 1,
             'message' => 'Store updated successfully',
-            'store' => $this->storeRepository->getStoreWithProducts($storeId),
+            'store' => $this->storeRepository->findWithProducts($storeId),
         ]);
     }
 
     public function deleteStore(int $storeId): Response
     {
-        $store = $this->storeRepository->getStoreById($storeId);
+        $store = $this->storeRepository->find($storeId);
 
         if (!$store) {
             return $this->returnStoreNotFound();
@@ -163,7 +164,7 @@ class StoreService
 
         $this->detachProductsFromStore($store);
 
-        $isDeleted = (bool)$this->storeRepository->deleteStore($storeId);
+        $isDeleted = (bool)$this->storeRepository->delete($storeId);
 
         if (!$isDeleted) {
             return $this->jsonResponderService->response([
@@ -194,7 +195,7 @@ class StoreService
             unset($product['id']);
             $attributes = array_map('intval', $product);
 
-            $this->storeRepository->attachProductToStore($store, $productId, $attributes);
+            $this->storeRepository->attachProduct($store, $productId, $attributes);
         }
     }
 
@@ -208,7 +209,7 @@ class StoreService
         $productIdsToDetach = $store->products->pluck('id');
         $productIdsToDetachArray = $productIdsToDetach->toArray();
 
-        $this->storeRepository->detachProductsFromStore($store, $productIdsToDetachArray);
+        $this->storeRepository->detachProducts($store, $productIdsToDetachArray);
     }
 
     private function mergeProductsDataWithSameProductId(array $productsData): array
@@ -307,12 +308,19 @@ class StoreService
 
     private function validateProductId(int $productId): int
     {
-        $product = $this->productRepository->getProductById($productId);
+        $product = $this->productRepository->find($productId);
 
         if (!$product) {
             return 0;
         }
 
         return $productId;
+    }
+
+    public function syncProducts(Store $store, array $productsToSync): void
+    {
+        foreach ($productsToSync as $productToSync) {
+            $this->storeRepository->syncProduct($store, $productToSync);
+        }
     }
 }

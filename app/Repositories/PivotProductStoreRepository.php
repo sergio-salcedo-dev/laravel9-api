@@ -10,7 +10,7 @@ use App\Models\Store;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class PivotPivotProductStoreRepository implements PivotProductStoreRepositoryInterface
+class PivotProductStoreRepository implements PivotProductStoreRepositoryInterface
 {
     public function getPivotByIds(int $storeId, int $productId): Pivot|Builder|ProductStore|null
     {

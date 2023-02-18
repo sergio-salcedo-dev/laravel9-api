@@ -11,69 +11,42 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
-class StoreRepository implements StoreRepositoryInterface
+class StoreRepository extends EloquentModelRepository implements StoreRepositoryInterface
 {
-    public function getAllStores(): Collection
+    protected function modelClass(): string|Store
     {
-        return Store::all();
+        return Store::class;
     }
 
-    public function getStoreById(int $storeId): Eloquent|Builder|Store|null
+    public function findWithProducts(int $storeId): Eloquent|Builder|Store|null
     {
-        return Store::where('id', $storeId)->first();
-    }
-
-    public function getStoreWithProducts(int $storeId): Eloquent|Builder|Store|null
-    {
-        return Store::with('products')->where('id', $storeId)->first();
+        return $this->modelClass()::with('products')->where('id', $storeId)->first();
     }
 
     /** @return Store[]|Collection */
-    public function getStoresWithProductsCount(): Collection|array
+    public function allWithProductsCount(): Collection|array
     {
-        return Store::withCount('products')->get();
+        return $this->modelClass()::withCount('products')->get();
     }
 
     /** @return Store[]|Collection */
-    public function getStoresWithProducts(): Collection|array
+    public function allWithProducts(): Collection|array
     {
-        return Store::with('products')->get();
+        return $this->modelClass()::with('products')->get();
     }
 
-    public function deleteStore(int $storeId): int
-    {
-        return Store::destroy($storeId);
-    }
-
-    public function createStore(array $attributes): Eloquent|Store
-    {
-        return Store::create($attributes);
-    }
-
-    public function updateStore(int $storeId, array $attributes): bool|int
-    {
-        return $this->getStoreById($storeId)->update($attributes);
-    }
-
-    public function saveStore(Store $store): bool
-    {
-        return $store->save();
-    }
-
-    public function detachProductsFromStore(Store $store, array $productIds): void
+    public function detachProducts(Store $store, array $productIds): void
     {
         $store->products()->detach($productIds);
     }
 
-    public function attachProductToStore(Store $store, int $productId, array $attributes = []): void
+    public function attachProduct(Store $store, int $productId, array $attributes = []): void
     {
         $store->products()->attach($productId, $attributes);
     }
 
-    public function syncProducts(Store $store, Model|Collection|array $ids): void
+    public function syncProduct(Store $store, Model|Collection|array $ids): void
     {
-        foreach ($ids as $id) {
-            $store->products()->sync($id);
-        }
+        $store->products()->sync($ids);
     }
 }

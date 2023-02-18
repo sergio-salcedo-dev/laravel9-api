@@ -55,7 +55,7 @@ class ProductServiceTest extends TestCase
             ],
         ];
 
-        $this->productRepository->expects('getAllProducts')->andReturn(new Collection($data['products']));
+        $this->productRepository->expects('all')->andReturn(new Collection($data['products']));
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data));
 
         $response = $this->service->getAllProducts();
@@ -79,7 +79,7 @@ class ProductServiceTest extends TestCase
                 'storeId' => $storeId,
                 'productId' => $productId,
             ]);
-        $this->storeRepository->shouldReceive('getStoreById')->with($storeId)->andReturnNull();
+        $this->storeRepository->shouldReceive('find')->with($storeId)->andReturnNull();
         $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 404));
 
         $response = $this->service->sellProduct($request);
@@ -104,8 +104,8 @@ class ProductServiceTest extends TestCase
                 'storeId' => $storeId,
                 'productId' => $productId,
             ]);
-        $this->storeRepository->shouldReceive('getStoreById')->with($storeId)->andReturn($store);
-        $this->productRepository->shouldReceive('getProductById')->with($productId)->andReturnNull();
+        $this->storeRepository->shouldReceive('find')->with($storeId)->andReturn($store);
+        $this->productRepository->shouldReceive('find')->with($productId)->andReturnNull();
         $this->jsonResponderService->shouldReceive('response')->andReturn(new JsonResponse($data, 404));
 
         $response = $this->service->sellProduct($request);
@@ -131,8 +131,8 @@ class ProductServiceTest extends TestCase
                 'storeId' => $storeId,
                 'productId' => $productId,
             ]);
-        $this->storeRepository->shouldReceive('getStoreById')->with($storeId)->andReturn($store);
-        $this->productRepository->shouldReceive('getProductById')->with($productId)->andReturn($product);
+        $this->storeRepository->shouldReceive('find')->with($storeId)->andReturn($store);
+        $this->productRepository->shouldReceive('find')->with($productId)->andReturn($product);
         $this->pivotProductStoreRepository->shouldReceive('getPivotByIds')->with(
             $storeId,
             $productId
@@ -163,8 +163,8 @@ class ProductServiceTest extends TestCase
                 'storeId' => $storeId,
                 'productId' => $productId,
             ]);
-        $this->storeRepository->shouldReceive('getStoreById')->with($storeId)->andReturn($store);
-        $this->productRepository->shouldReceive('getProductById')->with($productId)->andReturn($product);
+        $this->storeRepository->shouldReceive('find')->with($storeId)->andReturn($store);
+        $this->productRepository->shouldReceive('find')->with($productId)->andReturn($product);
         $this->pivotProductStoreRepository->shouldReceive('getPivotByIds')->with($storeId, $productId)->andReturn(
             $pivotProductStore
         );
@@ -196,8 +196,8 @@ class ProductServiceTest extends TestCase
                 'storeId' => $storeId,
                 'productId' => $productId,
             ]);
-        $this->storeRepository->shouldReceive('getStoreById')->with($storeId)->andReturn($store);
-        $this->productRepository->shouldReceive('getProductById')->with($productId)->andReturn($product);
+        $this->storeRepository->shouldReceive('find')->with($storeId)->andReturn($store);
+        $this->productRepository->shouldReceive('find')->with($productId)->andReturn($product);
         $this->pivotProductStoreRepository->shouldReceive('getPivotByIds')->with($storeId, $productId)->andReturn(
             $pivotProductStore
         );
@@ -232,8 +232,8 @@ class ProductServiceTest extends TestCase
                 'storeId' => $storeId,
                 'productId' => $productId,
             ]);
-        $this->storeRepository->shouldReceive('getStoreById')->with($storeId)->andReturn($store);
-        $this->productRepository->shouldReceive('getProductById')->with($productId)->andReturn($product);
+        $this->storeRepository->shouldReceive('find')->with($storeId)->andReturn($store);
+        $this->productRepository->shouldReceive('find')->with($productId)->andReturn($product);
         $this->pivotProductStoreRepository->shouldReceive('getPivotByIds')->with($storeId, $productId)->andReturn(
             $pivotProductStore
         );
@@ -268,8 +268,8 @@ class ProductServiceTest extends TestCase
                 'storeId' => $storeId,
                 'productId' => $productId,
             ]);
-        $this->storeRepository->shouldReceive('getStoreById')->with($storeId)->andReturn($store);
-        $this->productRepository->shouldReceive('getProductById')->with($productId)->andReturn($product);
+        $this->storeRepository->shouldReceive('find')->with($storeId)->andReturn($store);
+        $this->productRepository->shouldReceive('find')->with($productId)->andReturn($product);
         $this->pivotProductStoreRepository->shouldReceive('getPivotByIds')->with($storeId, $productId)->andReturn(
             $pivotProductStore
         );

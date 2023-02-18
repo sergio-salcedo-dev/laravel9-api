@@ -36,8 +36,6 @@ class Store extends Eloquent
     use HasFactory;
     use SoftDeletes;
 
-    public const STORES_BASE_URL = "/stores";
-
     protected $fillable = [
         'name',
     ];

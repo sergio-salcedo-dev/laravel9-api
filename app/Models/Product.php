@@ -37,7 +37,6 @@ class Product extends Eloquent
     use HasFactory;
     use SoftDeletes;
 
-    const PRODUCTS_BASE_URL = '/products';
     protected $fillable = [
         'name',
     ];

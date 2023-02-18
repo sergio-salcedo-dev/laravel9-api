@@ -58,6 +58,15 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
+        ],
+        "test:unit": [
+            "phpunit --testsuite Unit"
+        ],
+        "test:integration": [
+            "phpunit --testsuite Integration"
+        ],
+        "test:feature": [
+            "phpunit --testsuite Feature"
         ]
     },
     "extra": {

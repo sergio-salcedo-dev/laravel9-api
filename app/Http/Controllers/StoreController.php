@@ -84,6 +84,12 @@ class StoreController extends Controller
      * Update the specified Store in DB.
      *
      * @api PUT /stores/{id}
+     *  Example body request (JSON):
+     *       {
+     *          "name" : "Test Store",
+     *          "productIds" : [1, 2] ,
+     *          "products" : [{ "id" : 1, "stock" : 2]
+     *      }
      */
     public function update($storeId, StoreUpdateOrCreateRequest $request): Response
     {

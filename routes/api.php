@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Helpers\ApiBaseUrlHelper;
+use App\Helpers\ProductsUrlHelper;
+use App\Helpers\StoresUrlHelper;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StoreController;
 use Illuminate\Http\Request;
@@ -47,15 +48,15 @@ Route::group(
     ],
     function () {
         Route::group(
-            ['prefix' => ApiBaseUrlHelper::STORES_BASE_URL],
+            ['prefix' => StoresUrlHelper::PREFIX_STORES],
             function () {
                 Route::get('/products', [StoreController::class, 'storesWithProducts'])->name('stores.products');
-                Route::get('/{id}/products', [StoreController::class, 'storeWithProducts'])->name('store.products');
+                Route::get('/{store}/products', [StoreController::class, 'storeWithProducts'])->name('store.products');
                 Route::get('/products-count', [StoreController::class, 'storesWithProductsCount'])
                     ->name('stores.products-count');
             }
         );
-        Route::apiResource(ApiBaseUrlHelper::STORES_BASE_URL, StoreController::class);
+        Route::apiResource(StoresUrlHelper::PREFIX_STORES, StoreController::class);
     }
 );
 
@@ -71,11 +72,11 @@ Route::group(
     ],
     function () {
         Route::group(
-            ['prefix' => ApiBaseUrlHelper::PRODUCTS_BASE_URL],
+            ['prefix' => ProductsUrlHelper::PREFIX_PRODUCTS],
             function () {
                 Route::post('/sell', [ProductController::class, 'sell'])->name('products.sell');
             }
         );
-        Route::apiResource(ApiBaseUrlHelper::PRODUCTS_BASE_URL, ProductController::class);
+        Route::apiResource(ProductsUrlHelper::PREFIX_PRODUCTS, ProductController::class);
     }
 );

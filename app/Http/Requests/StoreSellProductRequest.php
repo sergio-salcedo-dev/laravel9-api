@@ -17,9 +17,7 @@ class StoreSellProductRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
+    /** Get the validation rules that apply to the request. */
     public function rules(): array
     {
         return [
@@ -28,14 +26,12 @@ class StoreSellProductRequest extends FormRequest
         ];
     }
 
-    /**
-     * Custom message for validation
-     */
+    /** Custom message for validation */
     public function messages(): array
     {
         return [
-            'store_id.required' => 'the store_id is required',
-            'product_id.required' => 'the product_id is required',
+            'storeId.required' => 'the storeId field is required',
+            'productId.required' => 'the productId field is required',
         ];
     }
 }

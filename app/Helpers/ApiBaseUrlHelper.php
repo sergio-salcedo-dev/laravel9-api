@@ -6,6 +6,5 @@ namespace App\Helpers;
 
 class ApiBaseUrlHelper
 {
-    public const STORES_BASE_URL = "/stores";
-    public const PRODUCTS_BASE_URL = '/products';
+    public const PREFIX_API = "/api";
 }

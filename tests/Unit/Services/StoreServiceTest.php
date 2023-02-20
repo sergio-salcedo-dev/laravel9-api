@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Helpers\StoreMessageHelper;
 use App\Http\Requests\StoreUpdateOrCreateRequest;
 use App\Interfaces\ProductRepositoryInterface;
 use App\Interfaces\ResponderInterface;
@@ -16,7 +17,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
 class StoreServiceTest extends TestCase
@@ -24,7 +24,7 @@ class StoreServiceTest extends TestCase
     use MockeryPHPUnitIntegration;
 
     private StoreRepositoryInterface $storeRepository;
-    private ResponderInterface $jsonResponderService;
+    private ResponderInterface $responderService;
 
     public function setUp(): void
     {
@@ -32,27 +32,26 @@ class StoreServiceTest extends TestCase
 
         $this->storeRepository = Mockery::mock(StoreRepositoryInterface::class);
         $this->productRepository = Mockery::mock(ProductRepositoryInterface::class);
-        $this->jsonResponderService = Mockery::mock(ResponderInterface::class);
+        $this->responderService = Mockery::mock(ResponderInterface::class);
 
         $this->service = new StoreService(
             $this->storeRepository,
             $this->productRepository,
-            $this->jsonResponderService
+            $this->responderService
         );
     }
 
     public function testGetAllStores_returnJsonResponseWithStatusCode200(): void
     {
         $data = [
-            'success' => 1,
-            'stores' => [
+            StoreService::KEY_STORES => [
                 ['id' => 1, 'name' => 'Store 1'],
                 ['id' => 2, 'name' => 'Store 2'],
             ],
         ];
 
-        $this->storeRepository->expects('all')->andReturn(new Collection($data['stores']));
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data));
+        $this->storeRepository->expects('all')->andReturn(new Collection($data[StoreService::KEY_STORES]));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data));
 
         $response = $this->service->getAllStores();
 
@@ -62,8 +61,7 @@ class StoreServiceTest extends TestCase
     public function testGetStoresWithProducts_returnsJsonResponseWithStoresWithProductsAndStatusCode200(): void
     {
         $data = [
-            'success' => 1,
-            'stores' => [
+            StoreService::KEY_STORES => [
                 [
                     'id' => 1,
                     'name' => 'Store 1',
@@ -83,7 +81,7 @@ class StoreServiceTest extends TestCase
             ],
         ];
         $this->storeRepository->expects('allWithProducts')->andReturn($data);
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 200));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->getStoresWithProducts();
 
@@ -93,14 +91,13 @@ class StoreServiceTest extends TestCase
     public function testGetStoresWithProductsCount_returnsJsonResponseWithStoresWithProductCountAndStatusCode200(): void
     {
         $data = [
-            'success' => 1,
-            'stores' => [
+            StoreService::KEY_STORES => [
                 ['id' => 1, 'name' => 'Store 1', 'products_count' => 1],
                 ['id' => 2, 'name' => 'Store 2', 'products_count' => 1],
             ],
         ];
         $this->storeRepository->expects('allWithProductsCount')->andReturn($data);
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 200));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->getStoresWithProductsCount();
 
@@ -109,13 +106,10 @@ class StoreServiceTest extends TestCase
 
     public function testGetStoreWithProducts_withStoreNotFound_returnsJsonResponseWithStatusCode404(): void
     {
-        $data = [
-            'success' => 0,
-            'message' => 'Store not found',
-        ];
+        $data = [ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_NOT_FOUND];
 
         $this->storeRepository->expects('findWithProducts')->andReturnNull();
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 404));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data, 404));
 
         $response = $this->service->getStoreWithProducts(1);
 
@@ -125,8 +119,7 @@ class StoreServiceTest extends TestCase
     public function testGetStoreWithProducts_withStore_returnsJsonResponseWithStoreAndProductsAndStatusCode200(): void
     {
         $data = [
-            'success' => 1,
-            'stores' => [
+            StoreService::KEY_STORES => [
                 [
                     'id' => 1,
                     'name' => 'Store 1',
@@ -148,7 +141,7 @@ class StoreServiceTest extends TestCase
         $store = Mockery::mock(Store::class);
 
         $this->storeRepository->expects('findWithProducts')->andReturn($store);
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 200));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->getStoreWithProducts(1);
 
@@ -157,13 +150,10 @@ class StoreServiceTest extends TestCase
 
     public function testGetStore_withStoreNotFound_returnsJsonResponseWithStatusCode404(): void
     {
-        $data = [
-            'success' => 0,
-            'message' => 'Store not found',
-        ];
+        $data = [ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_NOT_FOUND];
 
         $this->storeRepository->expects('find')->andReturnNull();
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 404));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data, 404));
 
         $response = $this->service->getStore(1);
 
@@ -172,14 +162,11 @@ class StoreServiceTest extends TestCase
 
     public function testGetStore_withStore_returnsJsonResponseWithStoreAndStatusCode200(): void
     {
-        $data = [
-            'success' => 1,
-            'store' => ['id' => 1, 'name' => 'Store 1'],
-        ];
+        $data = [StoreService::KEY_STORE => ['id' => 1, 'name' => 'Store 1']];
         $store = Mockery::mock(Store::class);
 
         $this->storeRepository->expects('find')->andReturn($store);
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 200));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->getStore(1);
 
@@ -191,10 +178,7 @@ class StoreServiceTest extends TestCase
         $data = [
             'code' => 500,
             'error' => 'exception message',
-            'result' => [
-                'success' => 0,
-                'message' => 'The store was not created',
-            ],
+            'result' => [ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_NOT_CREATED],
         ];
         $request = Mockery::mock(StoreUpdateOrCreateRequest::class);
         $exception = new Exception('exception message');
@@ -210,7 +194,7 @@ class StoreServiceTest extends TestCase
             ]);
 
         $this->storeRepository->expects('create')->andThrow($exception);
-        $this->jsonResponderService->expects('sendExceptionError')->andReturn(new JsonResponse($data, 500));
+        $this->responderService->expects('sendExceptionError')->andReturn(new JsonResponse($data, 500));
 
         $response = $this->service->createStore($request);
 
@@ -224,8 +208,8 @@ class StoreServiceTest extends TestCase
             'code' => 500,
             'error' => 'exception message',
             'result' => [
-                'success' => 1,
-                'message' => 'Warning: The store was created successfully but something went wrong when attaching the products',
+                ResponderInterface::KEY_MESSAGE =>
+                    'Warning: The store was created successfully but something went wrong when attaching the products',
             ],
         ];
         $request = Mockery::mock(StoreUpdateOrCreateRequest::class);
@@ -251,7 +235,7 @@ class StoreServiceTest extends TestCase
             ->zeroOrMoreTimes()
             ->andReturn($product);
         $this->storeRepository->expects('attachProduct')->andThrow($exception);
-        $this->jsonResponderService->expects('sendExceptionError')->andReturn(new JsonResponse($data, 500));
+        $this->responderService->expects('sendExceptionError')->andReturn(new JsonResponse($data, 500));
 
         $response = $this->service->createStore($request);
 
@@ -262,9 +246,8 @@ class StoreServiceTest extends TestCase
     ): void
     {
         $data = [
-            'success' => 1,
-            'message' => 'Store created successfully',
-            'store' => [
+            ResponderInterface::KEY_MESSAGE => 'Store created successfully',
+            StoreService::KEY_STORE => [
                 'id' => 1,
                 'name' => 'Store 1',
                 'products' => [
@@ -298,7 +281,8 @@ class StoreServiceTest extends TestCase
             ->andReturn($product);
         $this->storeRepository->shouldReceive('attachProduct')->zeroOrMoreTimes();
         $this->storeRepository->shouldReceive('findWithProducts')->with($store->id)->andReturn($store);
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 500));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data, 500));
+        $store->shouldReceive('makeHidden');
 
         $response = $this->service->createStore($request);
 
@@ -307,10 +291,7 @@ class StoreServiceTest extends TestCase
 
     public function testUpdateStore_withStoreNotFound_returnsJsonResponseWithStatusCode404(): void
     {
-        $data = [
-            'success' => 0,
-            'message' => "Store not found",
-        ];
+        $data = [ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_NOT_FOUND];
         $request = Mockery::mock(StoreUpdateOrCreateRequest::class);
 
         $request
@@ -324,7 +305,7 @@ class StoreServiceTest extends TestCase
                 ],
             ]);
         $this->storeRepository->expects('find')->andReturnNull();
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 404));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data, 404));
 
         $response = $this->service->updateStore(1, $request);
 
@@ -333,10 +314,7 @@ class StoreServiceTest extends TestCase
 
     public function testUpdateStore_withStoreNotUpdated_returnsJsonResponseWithStatusCode202(): void
     {
-        $data = [
-            'success' => 0,
-            'message' => 'An error occurred while updating the store',
-        ];
+        $data = [ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_NOT_UPDATED];
         $request = Mockery::mock(StoreUpdateOrCreateRequest::class);
 
         $request
@@ -350,15 +328,19 @@ class StoreServiceTest extends TestCase
                 ],
             ]);
         $store = Mockery::mock(Store::class);
+        $product = Mockery::mock(Product::class);
 
         $this->storeRepository->expects('find')->andReturn($store);
         $this->storeRepository->expects('update')->andReturnFalse();
-
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, Response::HTTP_ACCEPTED));
+        $this->productRepository->shouldReceive('find')->andReturn($product);
+        $this->storeRepository->shouldReceive('syncProduct');
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data));
+        $store->shouldReceive('refresh');
+        $this->storeRepository->shouldReceive('findWithProducts');
 
         $response = $this->service->updateStore(1, $request);
 
-        $this->assertJsonResponseAndStatusCode(json_encode($data), 202, $response);
+        $this->assertJsonResponseAndStatusCode(json_encode($data), 200, $response);
     }
 
     public function testUpdateStore_withStoreUpdatedAndFailureSyncingProducts_returnsJsonResponseWithStatusCode500(
@@ -368,8 +350,7 @@ class StoreServiceTest extends TestCase
             'code' => 500,
             'error' => 'exception message',
             'result' => [
-                'success' => 0,
-                'message' => 'Upss... The store was updated successfully but something went wrong when syncing the products',
+                ResponderInterface::KEY_MESSAGE => 'Upss... The store was updated successfully but something went wrong when syncing the products',
             ],
         ];
         $request = Mockery::mock(StoreUpdateOrCreateRequest::class);
@@ -400,7 +381,7 @@ class StoreServiceTest extends TestCase
             ->andReturn($product);
         $this->storeRepository->shouldReceive('syncProducts')->andThrow($exception);
 
-        $this->jsonResponderService->expects('sendExceptionError')->andReturn(new JsonResponse($data, 500));
+        $this->responderService->expects('sendExceptionError')->andReturn(new JsonResponse($data, 500));
 
         $response = $this->service->updateStore(1, $request);
 
@@ -409,10 +390,7 @@ class StoreServiceTest extends TestCase
 
     public function testUpdateStore_withSuccessAndProductsSynced_returnsJsonResponseWithStatusCode200(): void
     {
-        $data = [
-            'success' => 1,
-            'message' => 'Store updated successfully',
-        ];
+        $data = [ResponderInterface::KEY_MESSAGE => 'Store updated successfully'];
         $request = Mockery::mock(StoreUpdateOrCreateRequest::class);
 
         $request
@@ -441,7 +419,7 @@ class StoreServiceTest extends TestCase
         $this->storeRepository->expects('syncProduct')->zeroOrMoreTimes();
         $this->storeRepository->expects('findWithProducts')->andReturn($store);
 
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 200));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->updateStore(1, $request);
 
@@ -450,13 +428,10 @@ class StoreServiceTest extends TestCase
 
     public function testDeleteStore_withStoreNotFound_returnsJsonResponseWithStatusCode404(): void
     {
-        $data = [
-            'success' => 0,
-            'message' => "Store not found",
-        ];
+        $data = [ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_NOT_FOUND];
 
         $this->storeRepository->expects('find')->andReturnNull();
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 404));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data, 404));
 
         $response = $this->service->deleteStore(1);
 
@@ -465,10 +440,7 @@ class StoreServiceTest extends TestCase
 
     public function testDeleteStore_withStoreNotDeleted_returnsJsonResponseWithStoreAndStatusCode500(): void
     {
-        $data = [
-            'success' => 0,
-            'message' => 'An error occurred while deleting the store',
-        ];
+        $data = [ResponderInterface::KEY_MESSAGE => 'An error occurred while deleting the store'];
 
         $product = Mockery::mock(Product::class)->makePartial();
         $products = new Collection([$product]);
@@ -481,7 +453,7 @@ class StoreServiceTest extends TestCase
 
         $this->storeRepository->expects('detachProducts');
         $this->storeRepository->expects('delete')->andReturn(0);
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 500));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data, 500));
 
         $response = $this->service->deleteStore(1);
 
@@ -491,9 +463,8 @@ class StoreServiceTest extends TestCase
     public function testDeleteStore_withStoreDeleted_returnsJsonResponseWithStoreAndStatusCode200(): void
     {
         $data = [
-            'success' => 1,
-            'message' => 'Store deleted successfully',
-            'store' => ['id' => 1, 'name' => 'Store 1'],
+            ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_DELETED,
+            StoreService::KEY_STORE => ['id' => 1, 'name' => 'Store 1'],
         ];
         $product = Mockery::mock(Product::class)->makePartial();
         $products = new Collection([$product]);
@@ -506,11 +477,13 @@ class StoreServiceTest extends TestCase
 
         $this->storeRepository->expects('detachProducts');
         $this->storeRepository->expects('delete')->andReturn(1);
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 200));
+        $store->shouldReceive('refresh')->andReturn($store);
+        $store->shouldReceive('makeVisible')->andReturn($store);
+        $store->shouldReceive('makeHidden');
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->deleteStore(1);
 
         $this->assertJsonResponseAndStatusCode(json_encode($data), 200, $response);
     }
-
 }

@@ -4,28 +4,34 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Helpers\StoreMessageHelper;
 use App\Http\Requests\StoreUpdateOrCreateRequest;
 use App\Interfaces\ProductRepositoryInterface;
 use App\Interfaces\ResponderInterface;
 use App\Interfaces\StoreRepositoryInterface;
+use App\Models\ProductStore;
 use App\Models\Store;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class StoreService
 {
+    public const KEY_STORES = "stores";
+    public const KEY_STORE = "store";
+    public const KEY_STORE_ID = 'storeId';
+
     public function __construct(
         private StoreRepositoryInterface $storeRepository,
         private ProductRepositoryInterface $productRepository,
-        private ResponderInterface $jsonResponderService
+        private ResponderInterface $responderService
     ) {
     }
 
     public function getAllStores(): Response
     {
-        return $this->jsonResponderService->response([
-            'success' => 1,
-            'stores' => $this->storeRepository->all(),
+        return $this->responderService->response([
+            self::KEY_STORES => $this->storeRepository->all(),
         ]);
     }
 
@@ -33,9 +39,8 @@ class StoreService
     {
         $stores = $this->storeRepository->allWithProducts();
 
-        return $this->jsonResponderService->response([
-            'success' => 1,
-            'stores' => $stores,
+        return $this->responderService->response([
+            self::KEY_STORES => $stores,
         ]);
     }
 
@@ -47,17 +52,15 @@ class StoreService
             return $this->returnStoreNotFound();
         }
 
-        return $this->jsonResponderService->response([
-            'success' => 1,
-            'store' => $store,
+        return $this->responderService->response([
+            self::KEY_STORE => $store,
         ]);
     }
 
     public function getStoresWithProductsCount(): Response
     {
-        return $this->jsonResponderService->response([
-            'success' => 1,
-            'stores' => $this->storeRepository->allWithProductsCount(),
+        return $this->responderService->response([
+            self::KEY_STORES => $this->storeRepository->allWithProductsCount(),
         ]);
     }
 
@@ -69,25 +72,24 @@ class StoreService
             return $this->returnStoreNotFound();
         }
 
-        return $this->jsonResponderService->response([
-            'success' => 1,
-            'store' => $store,
+        return $this->responderService->response([
+            self::KEY_STORE => $store,
         ]);
     }
 
     public function createStore(StoreUpdateOrCreateRequest $request): Response
     {
         $validatedAttributes = $request->validated();
-        $name = $validatedAttributes['name'];
-        $productIds = $validatedAttributes['productIds'] ?? [];
-        $productsData = $validatedAttributes['products'] ?? [];
+        $name = Str::of($validatedAttributes[Store::NAME])->trim()->value();
+        $productIds = $validatedAttributes[ProductService::KEY_PRODUCT_IDS] ?? [];
+        $productsData = $validatedAttributes[ProductService::KEY_PRODUCTS] ?? [];
 
         try {
-            $store = $this->storeRepository->create(['name' => $name]);
+            $store = $this->storeRepository->create([Store::NAME => $name]);
         } catch (Throwable $e) {
-            $errorInfo = ['success' => 0, 'message' => 'The store was not created'];
+            $errorInfo = [ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_NOT_CREATED];
 
-            return $this->jsonResponderService->sendExceptionError($e, $errorInfo);
+            return $this->responderService->sendExceptionError($e, $errorInfo);
         }
 
         try {
@@ -95,26 +97,24 @@ class StoreService
             $this->attachProductsToStore($store, $productsToAttach);
         } catch (Throwable $e) {
             $errorInfo = [
-                'success' => 1,
-                'message' => 'Warning: The store was created successfully but something went wrong when attaching the products',
+                ResponderInterface::KEY_MESSAGE =>
+                    'Warning: The store was created successfully but something went wrong when attaching the products',
             ];
 
-            return $this->jsonResponderService->sendExceptionError($e, $errorInfo);
+            return $this->responderService->sendExceptionError($e, $errorInfo);
         }
 
-        return $this->jsonResponderService->response([
-            'success' => 1,
-            'message' => 'Store created successfully',
-            'store' => $this->storeRepository->findWithProducts($store->id),
+        return $this->responderService->response([
+            ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_CREATED,
+            self::KEY_STORE => $this->storeRepository->findWithProducts($store->id)->makeHidden('updated_at'),
         ], Response::HTTP_CREATED);
     }
 
     public function updateStore(int $storeId, StoreUpdateOrCreateRequest $request): Response
     {
         $validatedAttributes = $request->validated();
-        $name = $validatedAttributes['name'];
-        $productIds = $validatedAttributes['productIds'] ?? [];
-        $productsData = $validatedAttributes['products'] ?? [];
+        $productIds = $validatedAttributes[ProductService::KEY_PRODUCT_IDS] ?? [];
+        $productsData = $validatedAttributes[ProductService::KEY_PRODUCTS] ?? [];
 
         $store = $this->storeRepository->find($storeId);
 
@@ -122,35 +122,30 @@ class StoreService
             return $this->returnStoreNotFound();
         }
 
-        $isUpdated = $this->storeRepository->update($storeId, ['name' => $name]);
+        $name = Str::of($validatedAttributes[Store::NAME] ?? '')->trim()->value() ?: $store->name;
 
-        if (!$isUpdated) {
-            return $this->jsonResponderService->response([
-                'success' => 0,
-                'message' => 'An error occurred while updating the store',
-            ], Response::HTTP_ACCEPTED);
-        }
-
-        $store->refresh();
+        $isUpdated = $this->storeRepository->update($storeId, [Store::NAME => $name]);
 
         try {
             $productsToAttach = $this->getProductsToAttach($productIds, $productsData);
             $productsToSync = $this->getProductsToSync($productsToAttach);
-
             $this->syncProducts($store, $productsToSync);
         } catch (Throwable $e) {
             $errorInfo = [
-                'success' => 1,
-                'message' => 'Upss... The store was updated successfully but something went wrong when syncing the products',
+                ResponderInterface::KEY_MESSAGE =>
+                    'Warning: The store was updated successfully but something went wrong when syncing the products',
             ];
 
-            return $this->jsonResponderService->sendExceptionError($e, $errorInfo);
+            return $this->responderService->sendExceptionError($e, $errorInfo);
         }
 
-        return $this->jsonResponderService->response([
-            'success' => 1,
-            'message' => 'Store updated successfully',
-            'store' => $this->storeRepository->findWithProducts($storeId),
+        $store->refresh();
+
+        $message = $isUpdated ? StoreMessageHelper::STORE_UPDATED : StoreMessageHelper::STORE_NOT_UPDATED;
+
+        return $this->responderService->response([
+            ResponderInterface::KEY_MESSAGE => $message,
+            self::KEY_STORE => $this->storeRepository->findWithProducts($storeId),
         ]);
     }
 
@@ -167,25 +162,28 @@ class StoreService
         $isDeleted = (bool)$this->storeRepository->delete($storeId);
 
         if (!$isDeleted) {
-            return $this->jsonResponderService->response([
-                'success' => 0,
-                'message' => 'An error occurred while deleting the store',
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->responderService->response(
+                [ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_NOT_DELETED],
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                ResponderInterface::VALUE_SUCCESS_FALSE
+            );
         }
 
-        return $this->jsonResponderService->response([
-            'success' => 1,
-            'message' => 'Store deleted successfully',
-            'store' => $store,
+        $store->refresh();
+
+        return $this->responderService->response([
+            ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_DELETED,
+            self::KEY_STORE => $store->makeVisible('deleted_at')->makeHidden('updated_at', 'products'),
         ]);
     }
 
-    private function returnStoreNotFound($message = "Store not found"): Response
+    private function returnStoreNotFound(): Response
     {
-        return $this->jsonResponderService->response([
-            'success' => 0,
-            'message' => $message,
-        ], Response::HTTP_NOT_FOUND);
+        return $this->responderService->response(
+            [ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_NOT_FOUND],
+            Response::HTTP_NOT_FOUND,
+            ResponderInterface::VALUE_SUCCESS_FALSE
+        );
     }
 
     private function attachProductsToStore(Store $store, array $products = []): void
@@ -205,7 +203,7 @@ class StoreService
 //        $productIdsToDetach = $store->products()->pluck('products.id')->toArray();
 //        $this->storeRepository->detachProductsFromStore($store, $productIdsToDetach);
 
-        $store->load('products');
+        $store->load(ProductService::KEY_PRODUCTS);
         $productIdsToDetach = $store->products->pluck('id');
         $productIdsToDetachArray = $productIdsToDetach->toArray();
 
@@ -217,11 +215,10 @@ class StoreService
         $mergedProductsData = [];
 
         foreach ($productsData as $productData) {
-            // todo check isset($productData["id"])
             $productId = $productData["id"];
 
             if (isset($mergedProductsData[$productId])) {
-                $mergedProductsData[$productId]["stock"] += $productData["stock"];
+                $mergedProductsData[$productId][ProductStore::STOCK] += $productData[ProductStore::STOCK];
             } else {
                 $mergedProductsData[$productId] = $productData;
             }
@@ -247,7 +244,7 @@ class StoreService
         return array_map(
             fn(int $validatedProductId): array => [
                 "id" => $validatedProductId,
-                "stock" => 0,
+                ProductStore::STOCK => ResponderInterface::VALUE_SUCCESS_FALSE,
             ],
             $validatedProductIds
         );
@@ -265,7 +262,7 @@ class StoreService
             if ($validatedProductId) {
                 $validatedProductsData[] = [
                     "id" => $validatedProductId,
-                    "stock" => $productData['stock'] ?? 0,
+                    ProductStore::STOCK => $productData[ProductStore::STOCK] ?? 0,
                 ];
             }
         }
@@ -296,8 +293,8 @@ class StoreService
         return array_reduce(
             $products,
             function ($carry, $product) {
-                if (isset($product['id']) && isset($product['stock'])) {
-                    $carry[0][$product['id']] = ["stock" => $product['stock']];
+                if (isset($product['id']) && isset($product[ProductStore::STOCK])) {
+                    $carry[0][$product['id']] = [ProductStore::STOCK => $product[ProductStore::STOCK]];
                 }
 
                 return $carry;

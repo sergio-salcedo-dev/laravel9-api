@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
-use App\Services\JsonResponderService;
+use App\Services\ResponderService;
 use Exception;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use stdClass;
 use Tests\TestCase;
 
-class JsonResponderServiceTest extends TestCase
+class ResponderServiceTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    private JsonResponderService $service;
+    private ResponderService $service;
 
     public function setUp(): void
     {
         parent::setUp();
 
-        $this->service = new JsonResponderService();
+        $this->service = new ResponderService();
     }
 
     /** @dataProvider providesDataAndValidStatusCode */
@@ -39,8 +39,8 @@ class JsonResponderServiceTest extends TestCase
     public function testResponseWithInvalidStatusCode(int $statusCode, array|object $data): void
     {
         $expectedResponse = isDevEnvironment()
-            ? '{"code":500,"error":"The HTTP status code \"' . $statusCode . '\" is not valid."}'
-            : '{"code":500,"error":"Something went wrong."}';
+            ? '{"success":0,"code":500,"error":"The HTTP status code \"' . $statusCode . '\" is not valid."}'
+            : '{"success":0,"code":500,"error":"Something went wrong."}';
 
         $response = $this->service->response($data, $statusCode);
 
@@ -56,10 +56,8 @@ class JsonResponderServiceTest extends TestCase
     ): void {
         $exception = new Exception('Test exception message');
         $expectedResponse = isDevEnvironment()
-            ? '{"code":' . $expectedStatusCode . ',"error":"Test exception message","result":' . $expectedResult . '}'
-            : '{"code":' . $expectedStatusCode . ',"error":"Something went wrong.","result":' . $expectedResult . '}';
-
-        $expectedResponse = '{"code":' . $expectedStatusCode . ',"error":"Test exception message","result":' . $expectedResult . '}';
+            ? '{"success":0,"code":' . $expectedStatusCode . ',"error":"Test exception message","result":' . $expectedResult . '}'
+            : '{"success":0,"code":' . $expectedStatusCode . ',"error":"Something went wrong.","result":' . $expectedResult . '}';
 
         $response = $this->service->sendExceptionError($exception, $data, $statusCode);
 
@@ -73,31 +71,36 @@ class JsonResponderServiceTest extends TestCase
      */
     private function providesInvalidStatusCode(): array
     {
+        $data = ['key' => 'value'];
+
         return [
             [1000, []],
             [0, new stdClass()],
             [-1, $this->getDummyObject()],
-            [0, ['key' => 'value']],
-            [-1, ['key' => 'value']],
+            [0, $data],
+            [-1, $data],
         ];
     }
 
     /**
      * @return array With this item structure [
      *     $data: array|object,
-     *     $expectedResponse: string,
+     *     $expectedResult: string,
      *     $statusCode: int,
      *     $expectedStatusCode: int,
      */
     private function providesDataAndStatusCode(): array
     {
+        $data = ['key' => 'value'];
+        $expectedResult = '{"key":"value"}';
+
         return [
-            [['key' => 'value'], '{"key":"value"}', 12345, 500],
-            [['key' => 'value'], '{"key":"value"}', -1, 500],
-            [['key' => 'value'], '{"key":"value"}', 501, 501],
+            [$data, $expectedResult, 12345, 500],
+            [$data, $expectedResult, -1, 500],
+            [$data, $expectedResult, 501, 501],
             [[], '[]', 500, 500],
             [new stdClass(), '{}', 400, 400],
-            [$this->getDummyObject(), '{"key":"value"}', 400, 400],
+            [$this->getDummyObject(), $expectedResult, 400, 400],
         ];
     }
 
@@ -111,14 +114,14 @@ class JsonResponderServiceTest extends TestCase
     private function providesDataAndValidStatusCode(): array
     {
         $data = ['key' => 'value'];
-        $expectedResponse = '{"key":"value"}';
+        $expectedResponse = '{"success":1,"key":"value"}';
 
         return [
             [[], '[]', 200, 200],
-            [new stdClass(), '{}', 200, 200],
+            [new stdClass(), '[]', 200, 200],
             [$data, $expectedResponse, 200, 200],
             [$data, $expectedResponse, 500, 500],
-            [$this->getDummyObject(), '{"key":"value"}', 200, 200],
+            [$this->getDummyObject(), $expectedResponse, 200, 200],
         ];
     }
 

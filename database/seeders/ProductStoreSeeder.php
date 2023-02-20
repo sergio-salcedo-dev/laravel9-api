@@ -11,9 +11,7 @@ use Illuminate\Database\Seeder;
 
 class ProductStoreSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+    /** Run the database seeds. */
     public function run(): void
     {
         $stores = Store::paginate(2);
@@ -21,7 +19,7 @@ class ProductStoreSeeder extends Seeder
 
         foreach ($products as $product) {
             foreach ($stores as $store) {
-                ProductStore::firstOrCreate([
+                ProductStore::create([
                     'product_id' => $product->id,
                     'store_id' => $store->id,
                 ]);

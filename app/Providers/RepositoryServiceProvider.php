@@ -11,25 +11,21 @@ use App\Interfaces\StoreRepositoryInterface;
 use App\Repositories\PivotProductStoreRepository;
 use App\Repositories\ProductRepository;
 use App\Repositories\StoreRepository;
-use App\Services\JsonResponderService;
+use App\Services\ResponderService;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
-    /**
-     * Register services.
-     */
+    /** Register services. */
     public function register(): void
     {
         $this->app->bind(StoreRepositoryInterface::class, StoreRepository::class);
         $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
         $this->app->bind(PivotProductStoreRepositoryInterface::class, PivotProductStoreRepository::class);
-        $this->app->bind(ResponderInterface::class, JsonResponderService::class);
+        $this->app->bind(ResponderInterface::class, ResponderService::class);
     }
 
-    /**
-     * Bootstrap services.
-     */
+    /** Bootstrap services. */
     public function boot(): void
     {
         //

@@ -21,17 +21,20 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
  */
 class ProductStore extends Pivot
 {
-    public const STOCK_RUNNING_LOW = 5;
+    public const STOCK_RUNNING_LOW_LIMIT = 5;
+    public const STORE_ID = 'store_id';
+    public const PRODUCT_ID = 'product_id';
+    public const STOCK = 'stock';
 
     protected $fillable = [
-        'store_id',
-        'product_id',
-        'stock',
+        self::STORE_ID,
+        self::PRODUCT_ID,
+        self::STOCK,
     ];
 
     protected $hidden = [
-        'store_id',
-        'product_id',
+        self::STORE_ID,
+        self::PRODUCT_ID,
     ];
 
     public function hasStock(): bool
@@ -41,7 +44,7 @@ class ProductStore extends Pivot
 
     public function isStockRunningLow(): bool
     {
-        return $this->stock <= self::STOCK_RUNNING_LOW;
+        return $this->stock <= self::STOCK_RUNNING_LOW_LIMIT;
     }
 
     public function isStockOut(): bool

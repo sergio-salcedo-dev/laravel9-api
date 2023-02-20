@@ -36,8 +36,10 @@ class Store extends Eloquent
     use HasFactory;
     use SoftDeletes;
 
+    public const NAME = 'name';
+
     protected $fillable = [
-        'name',
+        self::NAME,
     ];
 
     protected $hidden = [
@@ -48,6 +50,6 @@ class Store extends Eloquent
     {
         return $this->belongsToMany(Product::class)
             ->using(ProductStore::class)
-            ->withPivot(['stock']);
+            ->withPivot([ProductStore::STOCK]);
     }
 }

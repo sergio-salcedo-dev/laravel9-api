@@ -26,11 +26,11 @@ class PivotProductStoreRepository implements PivotProductStoreRepositoryInterfac
 
     public function decrementStock(ProductStore $pivot, int $quantity = 1): bool|int
     {
-        return $pivot->decrement('stock', $quantity);
+        return $pivot->decrement(ProductStore::STOCK, $quantity);
     }
 
     public function incrementStock(ProductStore $pivot, int $quantity = 1): bool|int
     {
-        return $pivot->increment('stock', $quantity);
+        return $pivot->increment(ProductStore::STOCK, $quantity);
     }
 }

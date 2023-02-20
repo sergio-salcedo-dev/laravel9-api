@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Helpers\ProductMessageHelper;
+use App\Helpers\ProductStoreMessageHelper;
+use App\Helpers\StoreMessageHelper;
 use App\Http\Requests\StoreSellProductRequest;
 use App\Interfaces\PivotProductStoreRepositoryInterface;
 use App\Interfaces\ProductRepositoryInterface;
@@ -13,6 +16,7 @@ use App\Models\Product;
 use App\Models\ProductStore;
 use App\Models\Store;
 use App\Services\ProductService;
+use App\Services\StoreService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Mockery;
@@ -26,7 +30,7 @@ class ProductServiceTest extends TestCase
     private StoreRepositoryInterface $storeRepository;
     private ProductRepositoryInterface $productRepository;
     private PivotProductStoreRepositoryInterface $pivotProductStoreRepository;
-    private ResponderInterface $jsonResponderService;
+    private ResponderInterface $responderService;
 
     public function setUp(): void
     {
@@ -35,28 +39,29 @@ class ProductServiceTest extends TestCase
         $this->storeRepository = Mockery::mock(StoreRepositoryInterface::class);
         $this->productRepository = Mockery::mock(ProductRepositoryInterface::class);
         $this->pivotProductStoreRepository = Mockery::mock(PivotProductStoreRepositoryInterface::class);
-        $this->jsonResponderService = Mockery::mock(ResponderInterface::class);
+        $this->responderService = Mockery::mock(ResponderInterface::class);
 
         $this->service = new ProductService(
             $this->storeRepository,
             $this->productRepository,
             $this->pivotProductStoreRepository,
-            $this->jsonResponderService
+            $this->responderService
         );
     }
 
     public function testGetAllProducts_returnJsonResponseWithStatusCode200(): void
     {
         $data = [
-            'success' => 1,
-            'products' => [
+            ProductService::KEY_PRODUCTS => [
                 ['id' => 1, 'name' => 'Product 1'],
                 ['id' => 2, 'name' => 'Product 2'],
             ],
         ];
 
-        $this->productRepository->expects('all')->andReturn(new Collection($data['products']));
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data));
+        $this->productRepository
+            ->expects('all')
+            ->andReturn(new Collection($data[ProductService::KEY_PRODUCTS]));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data));
 
         $response = $this->service->getAllProducts();
 
@@ -68,19 +73,16 @@ class ProductServiceTest extends TestCase
         $storeId = 1;
         $productId = 1;
         $request = Mockery::mock(StoreSellProductRequest::class);
-        $data = [
-            'success' => 0,
-            'message' => 'Store not found',
-        ];
+        $data = [ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_NOT_FOUND];
 
         $request
             ->shouldReceive('validated')
             ->andReturn([
-                'storeId' => $storeId,
-                'productId' => $productId,
+                StoreService::KEY_STORE_ID => $storeId,
+                ProductService::KEY_PRODUCT_ID => $productId,
             ]);
         $this->storeRepository->shouldReceive('find')->with($storeId)->andReturnNull();
-        $this->jsonResponderService->expects('response')->andReturn(new JsonResponse($data, 404));
+        $this->responderService->expects('response')->andReturn(new JsonResponse($data, 404));
 
         $response = $this->service->sellProduct($request);
 
@@ -93,20 +95,17 @@ class ProductServiceTest extends TestCase
         $productId = 1;
         $request = Mockery::mock(StoreSellProductRequest::class);
         $store = Mockery::mock(Store::class);
-        $data = [
-            'success' => 0,
-            'message' => 'Product not found',
-        ];
+        $data = [ResponderInterface::KEY_MESSAGE => ProductMessageHelper::PRODUCT_NOT_FOUND];
 
         $request
             ->shouldReceive('validated')
             ->andReturn([
-                'storeId' => $storeId,
-                'productId' => $productId,
+                StoreService::KEY_STORE_ID => $storeId,
+                ProductService::KEY_PRODUCT_ID => $productId,
             ]);
         $this->storeRepository->shouldReceive('find')->with($storeId)->andReturn($store);
         $this->productRepository->shouldReceive('find')->with($productId)->andReturnNull();
-        $this->jsonResponderService->shouldReceive('response')->andReturn(new JsonResponse($data, 404));
+        $this->responderService->shouldReceive('response')->andReturn(new JsonResponse($data, 404));
 
         $response = $this->service->sellProduct($request);
 
@@ -120,16 +119,13 @@ class ProductServiceTest extends TestCase
         $request = Mockery::mock(StoreSellProductRequest::class);
         $store = Mockery::mock(Store::class);
         $product = Mockery::mock(Product::class);
-        $data = [
-            'success' => 0,
-            'message' => 'The store does not have any stock of this product.',
-        ];
+        $data = [ResponderInterface::KEY_MESSAGE => ProductStoreMessageHelper::PRODUCT_OUT_STOCK];
 
         $request
             ->shouldReceive('validated')
             ->andReturn([
-                'storeId' => $storeId,
-                'productId' => $productId,
+                StoreService::KEY_STORE_ID => $storeId,
+                ProductService::KEY_PRODUCT_ID => $productId,
             ]);
         $this->storeRepository->shouldReceive('find')->with($storeId)->andReturn($store);
         $this->productRepository->shouldReceive('find')->with($productId)->andReturn($product);
@@ -137,7 +133,7 @@ class ProductServiceTest extends TestCase
             $storeId,
             $productId
         )->andReturnNull();
-        $this->jsonResponderService->shouldReceive('response')->andReturn(new JsonResponse($data, 200));
+        $this->responderService->shouldReceive('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->sellProduct($request);
 
@@ -152,16 +148,13 @@ class ProductServiceTest extends TestCase
         $store = Mockery::mock(Store::class);
         $product = Mockery::mock(Product::class);
         $pivotProductStore = Mockery::mock(ProductStore::class)->shouldAllowMockingProtectedMethods();
-        $data = [
-            'success' => 0,
-            'message' => 'The store does not have any stock of this product.',
-        ];
+        $data = [ResponderInterface::KEY_MESSAGE => ProductStoreMessageHelper::PRODUCT_OUT_STOCK];
 
         $request
             ->shouldReceive('validated')
             ->andReturn([
-                'storeId' => $storeId,
-                'productId' => $productId,
+                StoreService::KEY_STORE_ID => $storeId,
+                ProductService::KEY_PRODUCT_ID => $productId,
             ]);
         $this->storeRepository->shouldReceive('find')->with($storeId)->andReturn($store);
         $this->productRepository->shouldReceive('find')->with($productId)->andReturn($product);
@@ -169,7 +162,7 @@ class ProductServiceTest extends TestCase
             $pivotProductStore
         );
         $pivotProductStore->expects('hasStock')->andReturnFalse();
-        $this->jsonResponderService->shouldReceive('response')->andReturn(new JsonResponse($data, 200));
+        $this->responderService->shouldReceive('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->sellProduct($request);
 
@@ -185,16 +178,13 @@ class ProductServiceTest extends TestCase
         $store = Mockery::mock(Store::class);
         $product = Mockery::mock(Product::class);
         $pivotProductStore = Mockery::mock(ProductStore::class)->shouldAllowMockingProtectedMethods();
-        $data = [
-            'success' => 1,
-            'message' => 'Product sold successfully. The store run out of this product',
-        ];
+        $data = [ResponderInterface::KEY_MESSAGE => 'Product sold successfully. The store run out of this product'];
 
         $request
             ->shouldReceive('validated')
             ->andReturn([
-                'storeId' => $storeId,
-                'productId' => $productId,
+                StoreService::KEY_STORE_ID => $storeId,
+                ProductService::KEY_PRODUCT_ID => $productId,
             ]);
         $this->storeRepository->shouldReceive('find')->with($storeId)->andReturn($store);
         $this->productRepository->shouldReceive('find')->with($productId)->andReturn($product);
@@ -204,7 +194,7 @@ class ProductServiceTest extends TestCase
         $pivotProductStore->expects('hasStock')->andReturnTrue();
         $this->pivotProductStoreRepository->expects('decrementStock')->with($pivotProductStore)->andReturn(1);
         $pivotProductStore->expects('isStockOut')->andReturnTrue();
-        $this->jsonResponderService->shouldReceive('response')->andReturn(new JsonResponse($data, 200));
+        $this->responderService->shouldReceive('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->sellProduct($request);
 
@@ -222,15 +212,15 @@ class ProductServiceTest extends TestCase
         $product = Mockery::mock(Product::class);
         $pivotProductStore = Mockery::mock(ProductStore::class)->shouldAllowMockingProtectedMethods();
         $data = [
-            'success' => 1,
-            'message' => "Product sold successfully. The store is running low on stock of this product, remaining: $stock units",
+            ResponderInterface::KEY_MESSAGE =>
+                "Product sold successfully. The store is running low on stock of this product, remaining: $stock units",
         ];
 
         $request
             ->shouldReceive('validated')
             ->andReturn([
-                'storeId' => $storeId,
-                'productId' => $productId,
+                StoreService::KEY_STORE_ID => $storeId,
+                ProductService::KEY_PRODUCT_ID => $productId,
             ]);
         $this->storeRepository->shouldReceive('find')->with($storeId)->andReturn($store);
         $this->productRepository->shouldReceive('find')->with($productId)->andReturn($product);
@@ -242,7 +232,7 @@ class ProductServiceTest extends TestCase
         $pivotProductStore->expects('isStockOut')->andReturnFalse();
         $pivotProductStore->expects('isStockRunningLow')->andReturnTrue();
         $pivotProductStore->expects('getStock')->andReturn($stock);
-        $this->jsonResponderService->shouldReceive('response')->andReturn(new JsonResponse($data, 200));
+        $this->responderService->shouldReceive('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->sellProduct($request);
 
@@ -257,16 +247,13 @@ class ProductServiceTest extends TestCase
         $store = Mockery::mock(Store::class);
         $product = Mockery::mock(Product::class);
         $pivotProductStore = Mockery::mock(ProductStore::class)->shouldAllowMockingProtectedMethods();
-        $data = [
-            'success' => 1,
-            'message' => "Product sold successfully.",
-        ];
+        $data = [ResponderInterface::KEY_MESSAGE => "Product sold successfully."];
 
         $request
             ->shouldReceive('validated')
             ->andReturn([
-                'storeId' => $storeId,
-                'productId' => $productId,
+                StoreService::KEY_STORE_ID => $storeId,
+                ProductService::KEY_PRODUCT_ID => $productId,
             ]);
         $this->storeRepository->shouldReceive('find')->with($storeId)->andReturn($store);
         $this->productRepository->shouldReceive('find')->with($productId)->andReturn($product);
@@ -277,7 +264,7 @@ class ProductServiceTest extends TestCase
         $this->pivotProductStoreRepository->expects('decrementStock')->with($pivotProductStore)->andReturn(1);
         $pivotProductStore->expects('isStockOut')->andReturnFalse();
         $pivotProductStore->expects('isStockRunningLow')->andReturnFalse();
-        $this->jsonResponderService->shouldReceive('response')->andReturn(new JsonResponse($data, 200));
+        $this->responderService->shouldReceive('response')->andReturn(new JsonResponse($data, 200));
 
         $response = $this->service->sellProduct($request);
 

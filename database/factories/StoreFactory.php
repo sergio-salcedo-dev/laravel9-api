@@ -20,7 +20,7 @@ class StoreFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => 'Store ' . fake()->randomNumber(5),
+            Store::NAME => 'Store ' . fake()->randomNumber(5),
         ];
     }
 }

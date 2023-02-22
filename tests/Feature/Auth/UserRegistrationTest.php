@@ -13,8 +13,7 @@ class UserRegistrationTest extends TestCase
     {
         $this->postJson(route('user.register'))
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['name', 'email', 'password'])
-            ->json();
+            ->assertJsonValidationErrors(['name', 'email', 'password']);
     }
 
     public function test_user_cannot_register_without_confirming_password(): void
@@ -28,8 +27,7 @@ class UserRegistrationTest extends TestCase
         $this->postJson(route('user.register', $request))
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['password'])
-            ->assertJsonMissingValidationErrors(['name', 'email'])
-            ->json();
+            ->assertJsonMissingValidationErrors(['name', 'email']);
     }
 
     public function test_user_cannot_register_without_a_valid_email(): void
@@ -44,8 +42,7 @@ class UserRegistrationTest extends TestCase
         $this->postJson(route('user.register', $request))
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['email'])
-            ->assertJsonMissingValidationErrors(['name', 'password'])
-            ->json();
+            ->assertJsonMissingValidationErrors(['name', 'password']);
     }
 
     public function test_user_can_register_when_meets_validation_rules(): void
@@ -59,8 +56,7 @@ class UserRegistrationTest extends TestCase
 
         $this->postJson(route('user.register', $request))
             ->assertCreated()
-            ->assertJsonMissingValidationErrors((['name', 'email', 'password']))
-            ->json();
+            ->assertJsonMissingValidationErrors((['name', 'email', 'password']));
 
         $this->assertDatabaseHas(User::class, ['email' => 'user@test.com']);
     }
@@ -79,8 +75,7 @@ class UserRegistrationTest extends TestCase
         $this->postJson(route('user.register', $request))
             ->assertUnprocessable()
             ->assertJsonMissingValidationErrors((['name', 'password']))
-            ->assertJsonValidationErrors(('email'))
-            ->json();
+            ->assertJsonValidationErrors(('email'));
 
         $this->assertDatabaseCount(User::class, 1);
     }

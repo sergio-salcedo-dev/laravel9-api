@@ -61,7 +61,7 @@ class UserRegistrationTest extends TestCase
         $this->assertDatabaseHas(User::class, ['email' => 'user@test.com']);
     }
 
-    public function test_user_cannot_register_if_emails_exists_in_database(): void
+    public function test_user_cannot_register_if_email_exists_in_database(): void
     {
         $request = [
             'name' => 'user',

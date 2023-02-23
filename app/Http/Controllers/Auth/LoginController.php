@@ -14,7 +14,7 @@ class LoginController extends Controller
 {
     public const TOKEN_NAME = 'api_token';
 
-    public function __invoke(UserLoginRequest $request): User|Response
+    public function __invoke(UserLoginRequest $request): Response
     {
         $user = User::whereEmail($request->validated('email'))->first();
 

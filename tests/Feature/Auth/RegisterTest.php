@@ -57,9 +57,10 @@ class RegisterTest extends TestCase
 
         $response = $this->postJson(route('user.register', $request))
             ->assertCreated()
-            ->assertJsonMissingValidationErrors((['name', 'email', 'password']));
+            ->assertJsonMissingValidationErrors((['name', 'email', 'password']))
+            ->json('data');
 
-        $registeredUser = User::find($response->json('id'))->makeVisible('password');
+        $registeredUser = User::find($response['id'])->makeVisible('password');
         $this->assertNotEquals('password', $registeredUser->password);
         $this->assertDatabaseHas(User::class, ['email' => 'user@test.com']);
     }

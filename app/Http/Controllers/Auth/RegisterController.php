@@ -6,15 +6,17 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRegisterRequest;
+use App\Http\Resources\Auth\UserRegisteredResource;
 use App\Models\User;
 
 class RegisterController extends Controller
 {
-    public function __invoke(UserRegisterRequest $request): User
+    public function __invoke(UserRegisterRequest $request): UserRegisteredResource
     {
         $attributes = $this->getAttributes($request);
+        $user = User::create($attributes);
 
-        return User::create($attributes);
+        return new UserRegisteredResource($user);
     }
 
     private function bcryptPassword(string $password): string

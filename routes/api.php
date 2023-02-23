@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Helpers\ProductsUrlHelper;
 use App\Helpers\StoresUrlHelper;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StoreController;
@@ -35,10 +36,24 @@ use Illuminate\Http\Request;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:sanctum')->get('/user', fn(Request $request) => $request->user());
 
-Route::post('register', RegisterController::class)->name('user.register');
-Route::post('login', LoginController::class)->name('user.login');
+Route::group(
+    ['middleware' => 'guest'],
+    function () {
+        Route::post('register', RegisterController::class)->name('user.register');
+        Route::post('login', LoginController::class)->name('user.login');
+    }
+);
+
+Route::group(
+    [
+        'middleware' => 'auth:sanctum',
+    ],
+    function () {
+        Route::get('user', fn(Request $request) => $request->user())->name('user.show');
+        Route::post('logout', LogoutController::class)->name('user.logout');
+    }
+);
 
 /*
 |--------------------------------------------------------------------------

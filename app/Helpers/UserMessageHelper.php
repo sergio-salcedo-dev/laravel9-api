@@ -7,4 +7,5 @@ namespace App\Helpers;
 class UserMessageHelper
 {
     public const INVALID_CREDENTIALS = 'Check email & password';
+    public const LOGGED_OUT = 'Logged out';
 }

@@ -12,6 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class LoginController extends Controller
 {
+    protected $middleware = ['guest'];
+
     public const TOKEN_NAME = 'api_token';
 
     public function __invoke(UserLoginRequest $request): User|Response

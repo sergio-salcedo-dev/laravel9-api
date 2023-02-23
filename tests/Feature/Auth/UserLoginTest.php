@@ -6,6 +6,7 @@ namespace Tests\Feature\Auth;
 
 use App\Helpers\UserMessageHelper;
 use App\Http\Controllers\Auth\LoginController;
+use Laravel\Sanctum\PersonalAccessToken;
 use Tests\Helpers\UserTestHelper;
 use Tests\TestCase;
 
@@ -74,7 +75,10 @@ class UserLoginTest extends TestCase
 
         $response = $this->postJson(route('user.login', $request))->assertok();
 
+        $this->assertAuthenticatedAs($user);
         $this->assertArrayHasKey($accessTokenKey, $response->json());
         $this->assertNotNull($response->json()[$accessTokenKey]);
+        $this->assertDatabaseCount(PersonalAccessToken::class, 1);
+        $this->assertDatabaseHas(PersonalAccessToken::class, ['tokenable_id' => $user->id]);
     }
 }

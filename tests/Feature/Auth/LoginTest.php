@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Auth;
 
 use App\Helpers\UserMessageHelper;
-use App\Http\Controllers\Auth\LoginController;
 use Laravel\Sanctum\PersonalAccessToken;
 use Tests\Helpers\UserTestHelper;
 use Tests\TestCase;
 
-class loginTest extends TestCase
+class LoginTest extends TestCase
 {
     public function test_user_cannot_login_without_valid_email(): void
     {
@@ -66,18 +65,16 @@ class loginTest extends TestCase
 
     public function test_user_can_login_when_email_and_password_match_records(): void
     {
-        $accessTokenKey = LoginController::ACCESS_TOKEN_KEY;
         $user = UserTestHelper::create();
         $request = [
             'email' => $user->email,
             'password' => 'password',
         ];
 
-        $response = $this->postJson(route('login', $request))->assertok();
+        $response = $this->postJson(route('login', $request))->assertok()->json('data');
 
         $this->assertAuthenticatedAs($user);
-        $this->assertArrayHasKey($accessTokenKey, $response->json());
-        $this->assertNotNull($response->json()[$accessTokenKey]);
+        $this->assertNotNull($response['accessToken']);
         $this->assertDatabaseCount(PersonalAccessToken::class, 1);
         $this->assertDatabaseHas(PersonalAccessToken::class, ['tokenable_id' => $user->id]);
     }

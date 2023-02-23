@@ -12,6 +12,21 @@ class RegisterController extends Controller
 {
     public function __invoke(UserRegisterRequest $request): User
     {
-        return User::create($request->validated());
+        $attributes = $this->getAttributes($request);
+
+        return User::create($attributes);
+    }
+
+    private function bcryptPassword(string $password): string
+    {
+        return bcrypt($password);
+    }
+
+    private function getAttributes(UserRegisterRequest $request)
+    {
+        $attributes = $request->validated();
+        $attributes['password'] = $this->bcryptPassword($request->validated('password'));
+
+        return $attributes;
     }
 }

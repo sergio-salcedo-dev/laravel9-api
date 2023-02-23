@@ -10,8 +10,6 @@ use App\Models\User;
 
 class RegisterController extends Controller
 {
-    protected $middleware = ['guest'];
-
     public function __invoke(UserRegisterRequest $request): User
     {
         $attributes = $this->getAttributes($request);

@@ -8,7 +8,7 @@ use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserLoggedInResource extends JsonResource
+class UserLoggedOutResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -18,13 +18,8 @@ class UserLoggedInResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            "isLoggedIn" => true,
-            'accessToken' => $this->getAccessToken($request),
-            'isEmailVerified' => (bool)$this->email_verified_at,
-            'createdAt' => $this->created_at->diffForHumans(),
+            'message' => 'Logged out successfully',
+            'isLoggedIn' => false,
         ];
     }
 

@@ -22,10 +22,10 @@ class LogoutTest extends TestCase
     public function test_user_can_logout_if_logged_in(): void
     {
         Sanctum::actingAs(UserTestHelper::create());
-        $response = $this->postJson(route('logout'))->assertOk();
+        $response = $this->postJson(route('logout'))->assertOk()->json('data');
 
         $this->assertArrayHasKey('message', $response);
-        $this->assertEquals(UserMessageHelper::LOGGED_OUT, $response->json('message'));
+        $this->assertEquals(UserMessageHelper::LOGGED_OUT, $response['message']);
     }
 
     public function test_user_tokens_are_removed_when_user_logged_out(): void
@@ -38,10 +38,10 @@ class LogoutTest extends TestCase
 
         $this->postJson(route('login', $request))->assertok()->json();
 
-        $response = $this->postJson(route('logout'))->assertOk();
+        $response = $this->postJson(route('logout'))->assertOk()->json('data');
 
         $this->assertArrayHasKey('message', $response);
-        $this->assertEquals(UserMessageHelper::LOGGED_OUT, $response->json('message'));
+        $this->assertEquals(UserMessageHelper::LOGGED_OUT, $response['message']);
         $this->assertDatabaseCount(PersonalAccessToken::class, 0);
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Auth;
 
+use App\Helpers\UserMessageHelper;
+use App\Http\Controllers\Auth\LoginController;
 use Tests\Helpers\UserTestHelper;
 use Tests\TestCase;
 
@@ -40,7 +42,7 @@ class UserLoginTest extends TestCase
             ->assertUnauthorized()
             ->json();
 
-        $this->assertEquals('Check the given data', $response['message']);
+        $this->assertEquals(UserMessageHelper::INVALID_CREDENTIALS, $response['message']);
         $this->assertCount(1, $response);
     }
 
@@ -57,12 +59,13 @@ class UserLoginTest extends TestCase
             ->assertUnauthorized()
             ->json();
 
-        $this->assertEquals('Check the given data', $response['message']);
+        $this->assertEquals(UserMessageHelper::INVALID_CREDENTIALS, $response['message']);
         $this->assertCount(1, $response);
     }
 
     public function test_user_can_login_when_email_and_password_match_records(): void
     {
+        $accessTokenKey = LoginController::ACCESS_TOKEN_KEY;
         $user = UserTestHelper::create();
         $request = [
             'email' => $user->email,
@@ -71,7 +74,7 @@ class UserLoginTest extends TestCase
 
         $response = $this->postJson(route('user.login', $request))->assertok();
 
-        $this->assertArrayHasKey('token', $response->json());
-        $this->assertNotNull($response->json()['token']);
+        $this->assertArrayHasKey($accessTokenKey, $response->json());
+        $this->assertNotNull($response->json()[$accessTokenKey]);
     }
 }

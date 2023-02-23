@@ -10,7 +10,7 @@ use Laravel\Sanctum\PersonalAccessToken;
 use Tests\Helpers\UserTestHelper;
 use Tests\TestCase;
 
-class UserLoginTest extends TestCase
+class loginTest extends TestCase
 {
     public function test_user_cannot_login_without_valid_email(): void
     {
@@ -19,14 +19,14 @@ class UserLoginTest extends TestCase
             'password' => 'password',
         ];
 
-        $this->postJson(route('user.login', $request))
+        $this->postJson(route('login', $request))
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['email']);
     }
 
     public function test_user_cannot_login_without_email_and_password(): void
     {
-        $this->postJson(route('user.login'))
+        $this->postJson(route('login'))
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['email', 'password']);
     }
@@ -38,7 +38,7 @@ class UserLoginTest extends TestCase
             'password' => 'password',
         ];
 
-        $response = $this->postJson(route('user.login', $request))
+        $response = $this->postJson(route('login', $request))
             ->assertJsonMissingValidationErrors(['email', 'password'])
             ->assertUnauthorized()
             ->json();
@@ -55,7 +55,7 @@ class UserLoginTest extends TestCase
             'password' => 'no_password_match',
         ];
 
-        $response = $this->postJson(route('user.login', $request))
+        $response = $this->postJson(route('login', $request))
             ->assertJsonMissingValidationErrors(['email', 'password'])
             ->assertUnauthorized()
             ->json();
@@ -73,7 +73,7 @@ class UserLoginTest extends TestCase
             'password' => 'password',
         ];
 
-        $response = $this->postJson(route('user.login', $request))->assertok();
+        $response = $this->postJson(route('login', $request))->assertok();
 
         $this->assertAuthenticatedAs($user);
         $this->assertArrayHasKey($accessTokenKey, $response->json());

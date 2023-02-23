@@ -8,7 +8,7 @@ use App\Models\User;
 use Tests\Helpers\UserTestHelper;
 use Tests\TestCase;
 
-class UserRegistrationTest extends TestCase
+class RegisterTest extends TestCase
 {
     public function test_user_cannot_register_without_name_email_and_password(): void
     {

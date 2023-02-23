@@ -12,17 +12,17 @@ use Tests\TestCase;
 
 use function route;
 
-class UserLogoutTest extends TestCase
+class LogoutTest extends TestCase
 {
     public function test_user_cannot_logout_if_not_logged_in(): void
     {
-        $this->postJson(route('user.logout'))->assertUnauthorized();
+        $this->postJson(route('logout'))->assertUnauthorized();
     }
 
     public function test_user_can_logout_if_logged_in(): void
     {
         Sanctum::actingAs(UserTestHelper::create());
-        $response = $this->postJson(route('user.logout'))->assertOk();
+        $response = $this->postJson(route('logout'))->assertOk();
 
         $this->assertArrayHasKey('message', $response);
         $this->assertEquals(UserMessageHelper::LOGGED_OUT, $response->json('message'));
@@ -36,9 +36,9 @@ class UserLogoutTest extends TestCase
             'password' => 'password',
         ];
 
-        $this->postJson(route('user.login', $request))->assertok()->json();
+        $this->postJson(route('login', $request))->assertok()->json();
 
-        $response = $this->postJson(route('user.logout'))->assertOk();
+        $response = $this->postJson(route('logout'))->assertOk();
 
         $this->assertArrayHasKey('message', $response);
         $this->assertEquals(UserMessageHelper::LOGGED_OUT, $response->json('message'));

@@ -41,7 +41,7 @@ Route::group(
     ['middleware' => 'guest'],
     function () {
         Route::post('register', RegisterController::class)->name('user.register');
-        Route::post('login', LoginController::class)->name('user.login');
+        Route::post('login', LoginController::class)->name('login');
     }
 );
 
@@ -51,7 +51,7 @@ Route::group(
     ],
     function () {
         Route::get('user', fn(Request $request) => $request->user())->name('user.show');
-        Route::post('logout', LogoutController::class)->name('user.logout');
+        Route::post('logout', LogoutController::class)->name('logout');
     }
 );
 

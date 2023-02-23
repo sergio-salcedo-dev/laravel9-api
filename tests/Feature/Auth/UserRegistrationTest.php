@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use Tests\Helpers\UserTestHelper;
 use Tests\TestCase;
 
 class UserRegistrationTest extends TestCase
@@ -70,7 +71,7 @@ class UserRegistrationTest extends TestCase
             'password_confirmation' => 'password',
         ];
 
-        User::factory()->create(['email' => 'user@test.com']);
+        UserTestHelper::create(['email' => 'user@test.com']);
 
         $this->postJson(route('user.register', $request))
             ->assertUnprocessable()

@@ -36,7 +36,6 @@ use Illuminate\Http\Request;
 |--------------------------------------------------------------------------
 */
 
-
 Route::group(
     ['middleware' => 'guest'],
     function () {
@@ -46,9 +45,7 @@ Route::group(
 );
 
 Route::group(
-    [
-        'middleware' => 'auth:sanctum',
-    ],
+    ['middleware' => 'auth:sanctum'],
     function () {
         Route::get('user', fn(Request $request) => $request->user())->name('user.show');
         Route::post('logout', LogoutController::class)->name('logout');

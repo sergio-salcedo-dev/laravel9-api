@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductUpdateOCreateRequest;
-use App\Http\Requests\StoreSellProductRequest;
+use App\Http\Requests\StoreSellsProductRequest;
 use App\Services\ProductService;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -52,7 +52,7 @@ class ProductController extends Controller
      * @api POST /products/sell
      * Example body request: JSON { "storeId":1, "productId" :1 }
      */
-    public function sell(StoreSellProductRequest $request): Response
+    public function sell(StoreSellsProductRequest $request): Response
     {
         return $this->productService->sellProduct($request);
     }

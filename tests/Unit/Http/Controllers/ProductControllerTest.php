@@ -6,7 +6,7 @@ namespace Tests\Unit\Http\Controllers;
 
 use App\Http\Controllers\ProductController;
 use App\Http\Requests\ProductUpdateOCreateRequest;
-use App\Http\Requests\StoreSellProductRequest;
+use App\Http\Requests\StoreSellsProductRequest;
 use App\Services\ProductService;
 use Illuminate\Http\Response;
 use Mockery;
@@ -51,7 +51,7 @@ class ProductControllerTest extends TestCase
 
     public function testSell_returnsExpectedJsonAndStatusCode(): void
     {
-        $request = Mockery::mock(StoreSellProductRequest::class);
+        $request = Mockery::mock(StoreSellsProductRequest::class);
 
         $this->productService->expects('sellProduct')->withArgs([$request])->andReturn($this->expectedResponse);
 

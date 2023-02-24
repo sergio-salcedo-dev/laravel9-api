@@ -8,7 +8,7 @@ use App\Helpers\ProductMessageHelper;
 use App\Helpers\ProductStoreMessageHelper;
 use App\Helpers\StoreMessageHelper;
 use App\Http\Requests\ProductUpdateOCreateRequest;
-use App\Http\Requests\StoreSellProductRequest;
+use App\Http\Requests\StoreSellsProductRequest;
 use App\Interfaces\PivotProductStoreRepositoryInterface;
 use App\Interfaces\ProductRepositoryInterface;
 use App\Interfaces\ResponderInterface;
@@ -119,7 +119,7 @@ class ProductService
         ]);
     }
 
-    public function sellProduct(StoreSellProductRequest $request): Response
+    public function sellProduct(StoreSellsProductRequest $request): Response
     {
         $validatedAttributes = array_map('intval', $request->validated());
         $storeId = $validatedAttributes[StoreService::KEY_STORE_ID];

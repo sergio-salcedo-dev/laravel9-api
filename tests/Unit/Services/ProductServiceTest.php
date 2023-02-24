@@ -7,7 +7,7 @@ namespace Tests\Unit\Services;
 use App\Helpers\ProductMessageHelper;
 use App\Helpers\ProductStoreMessageHelper;
 use App\Helpers\StoreMessageHelper;
-use App\Http\Requests\StoreSellProductRequest;
+use App\Http\Requests\StoreSellsProductRequest;
 use App\Interfaces\PivotProductStoreRepositoryInterface;
 use App\Interfaces\ProductRepositoryInterface;
 use App\Interfaces\ResponderInterface;
@@ -72,7 +72,7 @@ class ProductServiceTest extends TestCase
     {
         $storeId = 1;
         $productId = 1;
-        $request = Mockery::mock(StoreSellProductRequest::class);
+        $request = Mockery::mock(StoreSellsProductRequest::class);
         $data = [ResponderInterface::KEY_MESSAGE => StoreMessageHelper::STORE_NOT_FOUND];
 
         $request
@@ -93,7 +93,7 @@ class ProductServiceTest extends TestCase
     {
         $storeId = 1;
         $productId = 1;
-        $request = Mockery::mock(StoreSellProductRequest::class);
+        $request = Mockery::mock(StoreSellsProductRequest::class);
         $store = Mockery::mock(Store::class);
         $data = [ResponderInterface::KEY_MESSAGE => ProductMessageHelper::PRODUCT_NOT_FOUND];
 
@@ -116,7 +116,7 @@ class ProductServiceTest extends TestCase
     {
         $storeId = 1;
         $productId = 1;
-        $request = Mockery::mock(StoreSellProductRequest::class);
+        $request = Mockery::mock(StoreSellsProductRequest::class);
         $store = Mockery::mock(Store::class);
         $product = Mockery::mock(Product::class);
         $data = [ResponderInterface::KEY_MESSAGE => ProductStoreMessageHelper::PRODUCT_OUT_STOCK];
@@ -144,7 +144,7 @@ class ProductServiceTest extends TestCase
     {
         $storeId = 1;
         $productId = 1;
-        $request = Mockery::mock(StoreSellProductRequest::class);
+        $request = Mockery::mock(StoreSellsProductRequest::class);
         $store = Mockery::mock(Store::class);
         $product = Mockery::mock(Product::class);
         $pivotProductStore = Mockery::mock(ProductStore::class)->shouldAllowMockingProtectedMethods();
@@ -174,7 +174,7 @@ class ProductServiceTest extends TestCase
     {
         $storeId = 1;
         $productId = 1;
-        $request = Mockery::mock(StoreSellProductRequest::class);
+        $request = Mockery::mock(StoreSellsProductRequest::class);
         $store = Mockery::mock(Store::class);
         $product = Mockery::mock(Product::class);
         $pivotProductStore = Mockery::mock(ProductStore::class)->shouldAllowMockingProtectedMethods();
@@ -207,7 +207,7 @@ class ProductServiceTest extends TestCase
         $storeId = 1;
         $productId = 1;
         $stock = rand(1, 5);
-        $request = Mockery::mock(StoreSellProductRequest::class);
+        $request = Mockery::mock(StoreSellsProductRequest::class);
         $store = Mockery::mock(Store::class);
         $product = Mockery::mock(Product::class);
         $pivotProductStore = Mockery::mock(ProductStore::class)->shouldAllowMockingProtectedMethods();
@@ -243,7 +243,7 @@ class ProductServiceTest extends TestCase
     {
         $storeId = 1;
         $productId = 1;
-        $request = Mockery::mock(StoreSellProductRequest::class);
+        $request = Mockery::mock(StoreSellsProductRequest::class);
         $store = Mockery::mock(Store::class);
         $product = Mockery::mock(Product::class);
         $pivotProductStore = Mockery::mock(ProductStore::class)->shouldAllowMockingProtectedMethods();

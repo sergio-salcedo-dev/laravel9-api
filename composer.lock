@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0f551a593514602402321f7ec7454520",
+    "content-hash": "88f3087d6dabaf8338fa7e5306f71004",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -3287,16 +3287,16 @@
         },
         {
             "name": "spatie/laravel-query-builder",
-            "version": "5.1.2",
+            "version": "5.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-query-builder.git",
-                "reference": "5908f58fdff70fb600982b58c187e84855e2b5bc"
+                "reference": "7b3911f61dcaa27804b80f30b73a468a9539e850"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-query-builder/zipball/5908f58fdff70fb600982b58c187e84855e2b5bc",
-                "reference": "5908f58fdff70fb600982b58c187e84855e2b5bc",
+                "url": "https://api.github.com/repos/spatie/laravel-query-builder/zipball/7b3911f61dcaa27804b80f30b73a468a9539e850",
+                "reference": "7b3911f61dcaa27804b80f30b73a468a9539e850",
                 "shasum": ""
             },
             "require": {
@@ -3355,7 +3355,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2023-01-24T23:33:10+00:00"
+            "time": "2023-02-24T15:48:30+00:00"
         },
         {
             "name": "symfony/console",

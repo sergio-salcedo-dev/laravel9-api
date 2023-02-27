@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductUpdateOCreateRequest;
 use App\Http\Requests\StoreSellsProductRequest;
+use App\Models\Product;
 use App\Services\ProductService;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -30,9 +31,9 @@ class ProductController extends Controller
      *
      * @api GET /products/{id}
      */
-    public function show($productId): Response
+    public function show(Product $product): Response
     {
-        return $this->productService->getProductById((int)$productId);
+        return $this->productService->getProductById($product->id);
     }
 
     /**
@@ -62,9 +63,9 @@ class ProductController extends Controller
      *
      * @api PUT /products/{id}
      */
-    public function update($productId, ProductUpdateOCreateRequest $request): Response
+    public function update(ProductUpdateOCreateRequest $request, Product $product): Response
     {
-        return $this->productService->updateProduct((int)$productId, $request);
+        return $this->productService->updateProduct($product->id, $request);
     }
 
     /**
@@ -72,8 +73,8 @@ class ProductController extends Controller
      *
      * @api DELETE /products/{id}
      */
-    public function destroy($productId): Response
+    public function destroy(Product $product): Response
     {
-        return $this->productService->deleteProduct((int)$productId);
+        return $this->productService->deleteProduct($product->id);
     }
 }

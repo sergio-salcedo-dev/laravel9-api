@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Eloquent;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
@@ -17,6 +18,15 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
  * @property int $stock
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @method static Builder|ProductStore newModelQuery()
+ * @method static Builder|ProductStore newQuery()
+ * @method static Builder|ProductStore query()
+ * @method static Builder|ProductStore whereCreatedAt($value)
+ * @method static Builder|ProductStore whereId($value)
+ * @method static Builder|ProductStore whereProductId($value)
+ * @method static Builder|ProductStore whereStock($value)
+ * @method static Builder|ProductStore whereStoreId($value)
+ * @method static Builder|ProductStore whereUpdatedAt($value)
  * @mixin Eloquent
  */
 class ProductStore extends Pivot

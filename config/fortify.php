@@ -76,7 +76,7 @@ return [
 
     'prefix' => 'api',
 
-    'domain' => null,
+    'domain' => config('SESSION_DOMAIN'),
 
     /*
     |--------------------------------------------------------------------------
@@ -133,14 +133,14 @@ return [
 
     'features' => [
         Features::registration(),
-//        Features::resetPasswords(),
-//         Features::emailVerification(),
+        Features::resetPasswords(),
+        Features::emailVerification(),
 //        Features::updateProfileInformation(),
 //        Features::updatePasswords(),
 //        Features::twoFactorAuthentication([
 //            'confirm' => true,
 //            'confirmPassword' => true,
-//             'window' => 0,
+//            'window' => 0,
 //        ]),
     ],
 

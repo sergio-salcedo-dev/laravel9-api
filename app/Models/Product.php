@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property-read Collection<int, Store> $stores
  * @property-read int|null $stores_count
  * @method static ProductFactory factory($count = null, $state = [])
@@ -30,6 +31,10 @@ use Illuminate\Support\Carbon;
  * @method static Builder|Product whereId($value)
  * @method static Builder|Product whereName($value)
  * @method static Builder|Product whereUpdatedAt($value)
+ * @method static Builder|Product onlyTrashed()
+ * @method static Builder|Product whereDeletedAt($value)
+ * @method static Builder|Product withTrashed()
+ * @method static Builder|Product withoutTrashed()
  * @mixin Eloquent
  */
 class Product extends Eloquent

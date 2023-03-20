@@ -22,7 +22,7 @@ class UserLoggedInResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             "isLoggedIn" => true,
-            'accessToken' => $this->getAccessToken($request),
+//            'accessToken' => $this->getAccessToken($request),
             'isEmailVerified' => (bool)$this->email_verified_at,
             'createdAt' => $this->created_at->diffForHumans(),
         ];

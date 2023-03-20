@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Link;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,4 +16,18 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::get('/visit/{short_link}', function (string $short_link) {
+    $link = Link::where('short_link', $short_link)->first();
+
+    if (!$link) {
+        abort(404);
+    }
+
+    $link->views++;
+    $link->save();
+    $link->refresh();
+    dd($link);
+//    return Redirect::to($link->full_link, 301);
 });

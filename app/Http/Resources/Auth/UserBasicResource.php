@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Auth;
 
-use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserLoggedOutResource extends JsonResource
+class UserBasicResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -18,8 +17,9 @@ class UserLoggedOutResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            'message' => 'Logged out successfully',
-            'isLoggedIn' => false,
+            'id' => $this->id,
+            'name' => $this->name,
+            'email' => $this->email,
         ];
     }
 }

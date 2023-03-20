@@ -7,6 +7,7 @@ namespace Tests\Unit\Http\Controllers;
 use App\Http\Controllers\ProductController;
 use App\Http\Requests\ProductUpdateOCreateRequest;
 use App\Http\Requests\StoreSellsProductRequest;
+use App\Models\Product;
 use App\Services\ProductService;
 use Illuminate\Http\Response;
 use Mockery;
@@ -42,9 +43,12 @@ class ProductControllerTest extends TestCase
 
     public function testShow_returnsExpectedJsonAndStatusCode(): void
     {
-        $this->productService->expects('getProductById')->withArgs([1])->andReturn($this->expectedResponse);
+        $product = Mockery::mock(Product::class);
 
-        $response = $this->controller->show(1);
+        $product->shouldReceive('getAttribute')->with('id')->andReturn(1);
+        $this->productService->expects('getProductById')->andReturn($this->expectedResponse);
+
+        $response = $this->controller->show($product);
 
         $this->assertResponseWithStatusCode200($response);
     }
@@ -73,20 +77,26 @@ class ProductControllerTest extends TestCase
 
     public function testUpdate_returnsExpectedJsonAndStatusCode(): void
     {
+        $product = Mockery::mock(Product::class);
+        $product->shouldReceive('getAttribute')->with('id')->andReturn(1);
+
         $request = Mockery::mock(ProductUpdateOCreateRequest::class);
 
-        $this->productService->expects('updateProduct')->with(1, $request)->andReturn($this->expectedResponse);
+        $this->productService->expects('updateProduct')->andReturn($this->expectedResponse);
 
-        $response = $this->controller->update(1, $request);
+        $response = $this->controller->update($request, $product);
 
         $this->assertResponseWithStatusCode200($response);
     }
 
     public function testDestroy_returnsExpectedJsonAndStatusCode(): void
     {
-        $this->productService->expects('deleteProduct')->withArgs([1])->andReturn($this->expectedResponse);
+        $product = Mockery::mock(Product::class);
+        $product->shouldReceive('getAttribute')->with('id')->andReturn(1);
 
-        $response = $this->controller->destroy(1);
+        $this->productService->expects('deleteProduct')->andReturn($this->expectedResponse);
+
+        $response = $this->controller->destroy($product);
 
         $this->assertResponseWithStatusCode200($response);
     }

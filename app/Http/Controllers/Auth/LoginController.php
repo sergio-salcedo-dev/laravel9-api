@@ -8,8 +8,10 @@ use App\Helpers\UserMessageHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserLoginRequest;
 use App\Http\Resources\Auth\UserLoggedInResource;
-use Auth;
+use App\Http\Resources\MessageResource;
+use App\Models\User;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 
 class LoginController extends Controller
@@ -18,8 +20,10 @@ class LoginController extends Controller
 
     public function __invoke(UserLoginRequest $request): JsonResource|Response
     {
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response(['message' => UserMessageHelper::INVALID_CREDENTIALS], Response::HTTP_UNAUTHORIZED);
+        $user = User::whereEmail($request->validated('email'))->first();
+
+        if (!$user || !Hash::check($request->validated('password'), $user->password)) {
+            return new MessageResource(UserMessageHelper::INVALID_CREDENTIALS);
         }
 
         return new UserLoggedInResource($request->user());

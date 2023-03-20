@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Resources\Auth;
+namespace App\Http\Resources\Links;
 
-use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserLoggedOutResource extends JsonResource
+class ErrorMessageResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,9 +16,13 @@ class UserLoggedOutResource extends JsonResource
      */
     public function toArray($request): array
     {
+        self::withoutWrapping();
+
         return [
-            'message' => 'Logged out successfully',
-            'isLoggedIn' => false,
+            'message' => $this->resource['message'],
+            'errors' => [
+                $this->resource['key'] => [$this->resource['message']],
+            ],
         ];
     }
 }

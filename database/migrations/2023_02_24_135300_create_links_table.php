@@ -14,9 +14,9 @@ return new class extends Migration {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->id();
             $table->string('short_link');
-            $table->string('full_link');
+            $table->string('full_link')->unique();
             $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete()->cascadeOnUpdate();
             $table->bigInteger('views')->default(0);
             $table->timestamps();
         });

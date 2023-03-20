@@ -63,7 +63,8 @@ INFO Server running on [http://localhost] or [http://0.0.0.0:80].
 ```
 
 ```sh
-./vendor/bin/sail artisan cache:clear
+./vendor/bin/sail artisan optimize:clear
+
 ```
 
 ```sh

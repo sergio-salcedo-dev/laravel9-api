@@ -24,9 +24,22 @@ use Throwable;
 
 class LinkController extends Controller
 {
-    public function index(): JsonResource
+    public function index(Request $request): JsonResponse
     {
-        return LinkResource::collection(Link::all());
+        $request->validate(['page' => 'numeric|integer|gt:0']);
+
+        $links = QueryBuilder::for(Link::class)
+            ->allowedFilters(['full_link', 'short_link'])
+            ->allowedSorts('full_link', 'short_link', 'views', 'id')
+            ->where('user_id', Auth::user()->id)
+            ->paginate($request->get('perPage', 5));
+
+        return response()->json($links);
+    }
+
+    public function show(Link $link): LinkResource
+    {
+        return new LinkResource($link);
     }
 
     public function store(CreateLinkRequest $request): JsonResource|Response
@@ -43,7 +56,9 @@ class LinkController extends Controller
         }
 
         try {
-            if (Link::whereFullLink($fullLink)) {
+            $link = Link::where('full_link', $fullLink)->first();
+
+            if ($link) {
                 throw new LinkExistsException('Link already exists');
             }
 
@@ -51,7 +66,6 @@ class LinkController extends Controller
                 'full_link' => $fullLink,
                 'short_link' => $fullLinkWithoutProtocol,
                 'user_id' => Auth::user()->id,
-//                'user_id' => 999,
             ]);
 
             return new LinkResource($link);
@@ -71,14 +85,23 @@ class LinkController extends Controller
         }
     }
 
-    public function show(Link $link): LinkResource
+    public function update(UpdateLinkRequest $request, Link $link): LinkResource|JsonResponse
     {
-        return new LinkResource($link);
-    }
+        $theLink = $request->validated('link');
+        $fullLink = Str::endsWith($theLink, '/') ? Str::replaceLast('/', '', $theLink) : $theLink;
+        $fullLinkWithoutProtocol = preg_replace('/^http(s?):\/\/(www.?)/', '', $fullLink);
 
-    public function update(UpdateLinkRequest $request, Link $link): LinkResource
-    {
-        $link->update($request->only('short_link', 'full_link'));
+        if (!$fullLinkWithoutProtocol) {
+            return (new ErrorMessageResource([
+                'key' => 'link',
+                'message' => 'Domain is required.',
+            ]))->response()->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $link->update([
+            'full_link' => $fullLink,
+            'short_link' => $fullLinkWithoutProtocol,
+        ]);
         $link->refresh();
 
         return new LinkResource($link);
@@ -104,19 +127,5 @@ class LinkController extends Controller
         $links = Link::where('short_link', 'LIKE', "%$shortLink%")->whereUserId(Auth::user()->id)->get();
 
         return LinkBasicResource::collection($links);
-    }
-
-    public function getFilteredAndSortedLinks(Request $request): JsonResponse
-    {
-        $request->validate([
-            'perPage' => 'numeric|integer|gt:1',
-        ]);
-        $links = QueryBuilder::for(Link::class)
-            ->allowedFilters(['full_link', 'short_link'])
-            ->allowedSorts('full_link', 'short_link', 'views', 'id')
-            ->where('user_id', Auth::user()->id)
-            ->paginate($request->get('perPage', 5));
-
-        return response()->json($links);
     }
 }

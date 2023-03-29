@@ -15,7 +15,6 @@ class UpdateLinkRequest extends FormRequest
     public function authorize(): bool
     {
         return (bool)Auth::user();
-//        return true;
     }
 
     /**
@@ -26,8 +25,9 @@ class UpdateLinkRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'short_link' => 'required',
-            'full_link' => 'required|url',
+//            'short_link' => 'required',
+//            'full_link' => 'required|url',
+            'link' => 'required|url|unique:links,full_link',
         ];
     }
 }

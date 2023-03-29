@@ -121,8 +121,6 @@ Route::group(
             ['prefix' => 'links'],
             function () {
                 Route::get('/search/{shortLink}', [LinkController::class, 'search'])->name('links.search');
-                Route::get('/filtered', [LinkController::class, 'getFilteredAndSortedLinks'])
-                    ->name('links.filtered');
                 Route::delete('/delete-all', [LinkController::class, 'destroyAll'])->name('links.destroy-all');
             }
         );
